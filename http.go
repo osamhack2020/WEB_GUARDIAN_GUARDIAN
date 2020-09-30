@@ -47,7 +47,7 @@ func main() {
 			if img.Empty() {
 				continue
 			}
-			gocv.Resize(img, &img, image.Point{X: 400, Y: 270}, 0, 0, 1)
+			gocv.Resize(img, &img, image.Point{X: 480, Y: 270}, 0, 0, 1)
 			buf, _ := gocv.IMEncode(".jpg", img)
 			globalChannel.Emit("frame", buf)
 		}
