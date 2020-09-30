@@ -10,17 +10,14 @@
 
       window.onload = () => {
         window.socket = io({transports: ['websocket']});
-        socket.emit('send','Hi');
-        socket.on('data', function(msg){
+        socket.on('frame', function(msg){
       //  console.log(msg);
-            document.getElementById('num').innerText = msg;
-            $('#frame').attr(`src','data:image/jpeg;base64,${msg}`)
+            $('#frame').attr('src',`data:image/jpeg;base64,${msg}`)
         });
       }
     </script>
   </head>
   <body>
     <img id='frame'></img>
-    <div id='num'>1</div>
   </body>
 </html>
