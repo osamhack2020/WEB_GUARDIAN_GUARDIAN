@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <script
+  src="https://code.jquery.com/jquery-3.5.1.slim.js"
+  integrity="sha256-DrT5NfxfbHvMHux31Lkhxg42LY6of8TaYyK50jnxRnM="
+  crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/socket.io-2.3.0.js"></script>
+    <script>
+
+      window.onload = () => {
+        window.socket = io({transports: ['websocket']});
+        socket.emit('send','Hi');
+        socket.on('data', function(msg){
+      //  console.log(msg);
+            document.getElementById('num').innerText = msg;
+            $('#frame').attr(`src','data:image/jpeg;base64,${msg}`)
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <img id='frame'></img>
+    <div id='num'>1</div>
+  </body>
+</html>
