@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"net/http"
 
@@ -22,7 +23,7 @@ func main() {
 	})
 	//"rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"
 
-	cap, err := gocv.OpenVideoCapture("rtsp://13.76.101.16:8089/test")
+	cap, err := gocv.OpenVideoCapture("rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov")
 
 	if err != nil {
 		fmt.Printf("Error opening capture device")
@@ -34,7 +35,6 @@ func main() {
 
 		img := gocv.NewMat()
 		defer img.Close()
-
 		for {
 
 			if globalChannel == nil {
@@ -47,7 +47,7 @@ func main() {
 			if img.Empty() {
 				continue
 			}
-
+			gocv.Resize(img, &img, image.Point{X: 400, Y: 270}, 0, 0, 1)
 			buf, _ := gocv.IMEncode(".jpg", img)
 			globalChannel.Emit("frame", buf)
 		}
