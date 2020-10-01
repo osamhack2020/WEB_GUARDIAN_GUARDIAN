@@ -16,14 +16,11 @@ func main() {
 	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 
 	//handle connected
-	var globalChannel *gosocketio.Channel
 	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
 		log.Println("New client connected")
-		globalChannel = c
 	})
 	//"rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"
-
-	cap, err := gocv.OpenVideoCapture("rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov")
+	cap, err := gocv.OpenVideoCapture("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test")
 
 	if err != nil {
 		fmt.Printf("Error opening capture device")
@@ -36,10 +33,6 @@ func main() {
 		img := gocv.NewMat()
 		defer img.Close()
 		for {
-
-			if globalChannel == nil {
-				continue
-			}
 			if ok := cap.Read(&img); !ok {
 				fmt.Printf("Device closed\n")
 				return
@@ -49,7 +42,7 @@ func main() {
 			}
 			gocv.Resize(img, &img, image.Point{X: 480, Y: 270}, 0, 0, 1)
 			buf, _ := gocv.IMEncode(".jpg", img)
-			globalChannel.Emit("frame", buf)
+			server.BroadcastToAll("frame", buf)
 		}
 	}()
 
