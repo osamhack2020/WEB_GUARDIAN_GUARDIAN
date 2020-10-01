@@ -7,12 +7,11 @@
   crossorigin="anonymous"></script>
     <script src="https://cdn.socket.io/socket.io-2.3.0.js"></script>
     <script>
-
       window.onload = () => {
         window.socket = io({transports: ['websocket']});
-        socket.on('frame', function(msg){
-      //  console.log(msg);
-            $('#frame').attr('src',`data:image/jpeg;base64,${msg}`)
+        socket.on('frame', function(res){
+            let data = res;
+            $('#frame').attr('src',`data:image/jpeg;base64,${data}`);
         });
       }
     </script>
