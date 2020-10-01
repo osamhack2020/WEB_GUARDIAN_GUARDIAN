@@ -5,17 +5,35 @@ import (
 	"image"
 	"log"
 	"net/http"
+	"os"
 
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
 	"gocv.io/x/gocv"
 )
 
-func main() {
-	//create
-	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
+// SendFrame To Client with Socket.io
+func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server) {
 
-	//handle connected
+	img := gocv.NewMat()
+	defer img.Close()
+	for {
+		if ok := cap.Read(&img); !ok {
+			fmt.Printf("Device closed\n")
+			return
+		}
+		if img.Empty() {
+			continue
+		}
+		gocv.Resize(img, &img, image.Point{X: 480, Y: 270}, 0, 0, 1)
+		buf, _ := gocv.IMEncode(".jpg", img)
+		server.BroadcastToAll("frame", buf)
+		gocv.WaitKey(1)
+	}
+}
+
+func main() {
+	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
 		log.Println("New client connected")
 	})
@@ -28,28 +46,12 @@ func main() {
 	}
 	defer cap.Close()
 
-	go func() {
-
-		img := gocv.NewMat()
-		defer img.Close()
-		for {
-			if ok := cap.Read(&img); !ok {
-				fmt.Printf("Device closed\n")
-				return
-			}
-			if img.Empty() {
-				continue
-			}
-			gocv.Resize(img, &img, image.Point{X: 480, Y: 270}, 0, 0, 1)
-			buf, _ := gocv.IMEncode(".jpg", img)
-			server.BroadcastToAll("frame", buf)
-		}
-	}()
+	go SendFrame(cap, server)
 
 	//setup http server
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/socket.io/", server)
 	serveMux.Handle("/", http.FileServer(http.Dir("./asset")))
-	log.Println("server on 8080!")
-	log.Panic(http.ListenAndServe(":8080", serveMux))
+	log.Println("server on " + os.Args[1] + "!")
+	log.Panic(http.ListenAndServe(os.Args[1], serveMux))
 }

@@ -11,6 +11,6 @@
 ```sh
 > git clone https://github.com/gron1gh1/gocv-socket.io-streamer
 > cd gocv-socket.io-streamer
-> go run http.go
+> go run main.go :8080
 ```
 **Open the Internet with 8080 ports**
