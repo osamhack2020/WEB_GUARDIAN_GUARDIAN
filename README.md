@@ -1,5 +1,5 @@
 # gocv-socket.io-streamer
-**Open a video file, cam, or URL through gocv and send it to HTTP in real time with Socket.io.**
+**Open a video file, cam, or RTSP through gocv and send it to HTTP in real time with Socket.io.**
 
 ## Preview
 ![Preview](https://github.com/gron1gh1/gocv-socket.io-streamer/blob/master/preview.gif)
