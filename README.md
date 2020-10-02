@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
@@ -42,3 +43,35 @@ You don’t have to ever use `eject`. The curated feature set is suitable for sm
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+=======
+# guardian
+국방오픈소스아카데미 해커톤
+
+# 정리
+
+## 프론트엔드
+**React로 구현  
+Bootstrap이나 Antd 사용. (디자인)  
+socket.io 라이브러리로 서버와 실시간 통신 (서버 주는 데이터 실시간 시간 받기)  
+상황일지 작성 (몇시 몇분부 사람 식별, 자동차 식별)  
+데이터 시각화 (타임라인 그래프로 움직임 감지에 관한 그래프)  
+RTSP 스트리밍**
+
+
+## 클라우드
+**Docker로 OpenCV C++ Lib 컴파일한 이미지 굽기.  
+웹서버 컨테이너 (Node.js)  
+데이터베이스 컨테이너 (SQL or mongoDB)  
+영상처리 컨테이너 (C++)  
+RTSP 스트리밍 프레임 가져오는 컨테이너 (Node.js)**
+
+## 백엔드
+**OpenCV 카메라 프레임 구하기**
+
+
+
+## 테스트  
+**적절한 영상 구해서 영상 RTSP 스트리밍하고 VLC로 스트리밍 되나 확인한다.  
+RTSP 스트림을 백엔드에서 프레임 받아와서 프론트엔드로 넘겨준다.  
+만약 이 방식이 백엔드에 부하를 걸면 프론트엔드에서 RTSP 스트리밍이 가능한지 확인한다.**
+>>>>>>> 87c22d50f73e44733eb28919430579be694c6adf
