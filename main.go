@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/color"
@@ -8,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
+	"time"
 
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
@@ -165,11 +168,20 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 	defer oriImg.Close()
 
 	FrameChannel := make(chan gocv.Mat)
+
+	type IDetect struct {
+		Thumbnail []byte `json:"thumbnail"`
+		Content   string `json:"content"`
+		Time      string `json:"time"`
+	}
 	go func() { // Queue Thread
 		for {
 			q_img := <-FrameChannel
-			_, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
+			detectImg, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
+			buf, _ := gocv.IMEncode(".jpg", detectImg)
 			fmt.Printf("class : %v\n ", detectClass)
+			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
+			server.BroadcastToAll("detect", string(b))
 		}
 	}()
 
@@ -188,7 +200,7 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 			FrameChannel <- img
 			frameNext = 0
 		}
-		
+
 		gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
 
 		buf, _ := gocv.IMEncode(".jpg", img)
