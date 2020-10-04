@@ -1,8 +1,7 @@
 import React, { useState,useEffect } from "react";
-import { Card } from "antd";
+import { Card,Image} from "antd";
 
 import io from "socket.io-client";
-import { Socket } from "dgram";
 const socket = io(`http://${window.location.hostname}:8081/`,{ transports: ["websocket"]});
 /*
  window.socket = io({transports: ['websocket']});
@@ -21,10 +20,10 @@ export default function CameraFrame() {
         return (): any => socket.off('frame'); // componentWillUnmount 
     },[])
   return (
-        <img
+
+        <Image
         className="ant-card-hoverable"
         style={{width:480,height:270}}
-        alt="example"
         src={Frame}
       />
   );
