@@ -18,7 +18,7 @@
 ## 기술 스택 (Technique Used) (예시)
 ### Server(back-end)
  - golang 1.15.2
- - OpenCV 
+ - GoCV (OpenCV Binding) 
  - mongoDB
  - Express
  
@@ -46,4 +46,4 @@ $ yarn start or npm run start
 - 오택환 (jamesoh3928@naver.com), Github Id:jamesoh3928
 
 ## 저작권 및 사용권 정보 (Copyleft / End User License)
- * [MIT](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/license.md)
+ * [MIT](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/LICENSE)
