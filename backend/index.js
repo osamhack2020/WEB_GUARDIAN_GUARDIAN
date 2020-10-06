@@ -15,7 +15,7 @@ app.use(bodyParser.json());
 // http server를 socket.io server로 upgrade한다
 var io = require('socket.io')(server);
 
-/*/세션 설정
+/*/ 세션 설정
 app.use(session({
 	secret: 'test',
 	resave: false,
@@ -24,12 +24,12 @@ app.use(session({
 	expires: 
 }));*/
 
-//js폴더 static등록
+// js폴더 static등록
 app.use(express.static('public'));
 
-//포트설정
+// 포트설정
 var port = 80;
-//서버시작시 로그
+// 서버시작시 로그
 server.listen(port, () => {
 	console.log('Server listening at http://localhost:' + port);
 });
@@ -56,7 +56,7 @@ app.get('/api/signin', (req, res) => {
 	return res.json()
 });
 
-//연결시작
+// 연결시작
 io.on('connection', function(socket) {
 
 	/*/ 클라이언트로부터의 메시지가 수신되면

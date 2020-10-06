@@ -1,7 +1,7 @@
 {
-  "name": "web_guardian",
+  "name": "web_guardian_backend",
   "version": "0.0.1",
-  "description": "Guardian Project WEB",
+  "description": "Guardian WEB Backend Server",
   "main": "index.js",
   "author": "me9min",
   "license": "MIT",
