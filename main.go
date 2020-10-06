@@ -177,8 +177,8 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 	go func() { // Queue Thread
 		for {
 			q_img := <-FrameChannel
-			detectImg, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
-			buf, _ := gocv.IMEncode(".jpg", detectImg)
+			_, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
+			buf, _ := gocv.IMEncode(".jpg", q_img)
 			fmt.Printf("class : %v\n ", detectClass)
 			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
 			server.BroadcastToAll("detect", string(b))
@@ -194,10 +194,12 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		if img.Empty() {
 			continue
 		}
-		if frameNext >= 100 {
+		if frameNext >= 10 {
 			// 	// 	go q.Append(img)
 			// 	// 	fmt.Println("frameNext")
-			FrameChannel <- img
+			go func() {
+				FrameChannel <- img
+			}()
 			frameNext = 0
 		}
 
