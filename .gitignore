@@ -25,3 +25,7 @@ yarn-error.log*
 =======
 /assets/yolov4.weights
 >>>>>>> 8e8a1e84bd07523fed4ce6a648388218bae2ca0c
+
+# backend npm modules, session
+backend/node_modules
+backend/sessions
