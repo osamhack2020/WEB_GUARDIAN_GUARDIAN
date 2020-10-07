@@ -40,9 +40,8 @@ $ git clone https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN
 ```
 - 노드모듈 설치
 ```bash
-$ yarn add global react-scripts
 $ yarn add global nodemon
-$ yarn upgrade
+$ yarn install
 ```
 - 실행(프론트엔드)
 ```bash
