@@ -17,6 +17,8 @@ import (
 	"gocv.io/x/gocv"
 )
 
+var ViewChannel = make(chan []byte)
+
 // getOutputsNames : YOLO Layer
 func getOutputsNames(net *gocv.Net) []string {
 	var outputLayers []string
@@ -134,7 +136,7 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 	contours_cnt := 0
 	for i, c := range contours {
 		area := gocv.ContourArea(c)
-		if area < 100 && area < 5000 {
+		if area < 500 && area < 5000 {
 			continue
 		}
 
@@ -168,7 +170,6 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 
 	oriImg := gocv.NewMat()
 	defer oriImg.Close()
-
 	FrameChannel := make(chan gocv.Mat)
 	YoloChannel := make(chan gocv.Mat)
 	type IDetect struct {
@@ -193,27 +194,34 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 	go func() { // Motion Detect Thread
 		var startTime time.Time
 		var endTime time.Duration
+		var startFlag bool
 		for img := range FrameChannel {
-			_, motionCnt := MotionDetect(img, mog2)
+			gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
+			motion, motionCnt := MotionDetect(img, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
-				if startTime.IsZero() { // 움직임 감지 시작 시간 대입
-					startTime = time.Now()
+				if !startFlag { // 움직임 감지 시작 시간 대입
+					startFlag = true
+					fmt.Println("감지 시작")
+				} else {
+					fmt.Printf("감지 중 %d\n", motionCnt)
 				}
-				// else { // 움직이는 중
-				// 	endTime = time.Since(startTime)
-				// }
-			} else { // 중간 움직이는 중 추가해야 함.
-				if !startTime.IsZero() { // 이전에 움직임 감지 경력 있다면
+			} else { // 움직임 감지없으면
+				if startFlag { // 이전에 움직임 감지 경력 있다면
+					startTime = time.Now()
+				} else if !startTime.IsZero() {
 					endTime = time.Since(startTime)
-					if endTime > time.Second*2 { // 움직임 발견 X이고 2초가 지났을 때
+					fmt.Printf("%v\n", endTime.Seconds())
+					if endTime > time.Second*2 { // 2초가 지났을 때
 						startTime = time.Time{} // 초기화
+						startFlag = false
+						fmt.Println("감지 끝")
 					}
 				}
 			}
-
+			buf, _ := gocv.IMEncode(".jpg", motion)
+			server.BroadcastToAll("frame", buf)
 		}
 	}()
-	frameNext := 0
 	for {
 		if ok := cap.Read(&img); !ok {
 			fmt.Printf("Device closed\n")
@@ -225,19 +233,20 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		//if frameNext >= 10 {
 		// 	// 	go q.Append(img)
 		// 	// 	fmt.Println("frameNext")
-		go func() {
-			YoloChannel <- img
-		}()
+		go func(frame gocv.Mat) {
+			gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
+			buf, _ := gocv.IMEncode(".jpg", img)
+			ViewChannel <- buf
+		}(img) // 클로져 안써서 프레임 보장
 		//	frameNext = 0
 		//}
 
-		gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
+		//	gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
 
-		buf, _ := gocv.IMEncode(".jpg", img)
-		server.BroadcastToAll("frame", buf)
+		//buf, _ := gocv.IMEncode(".jpg", img)
+		//server.BroadcastToAll("frame", buf)
 
 		gocv.WaitKey(1)
-		frameNext++
 	}
 }
 
@@ -262,7 +271,14 @@ func main() {
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/socket.io/", server)
 	serveMux.Handle("/", http.FileServer(http.Dir("./assets")))
-
+	serveMux.HandleFunc("/video", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+		data := ""
+		for frame := range ViewChannel {
+			data = "--frame\r\n  Content-Type: image/jpeg\r\n\r\n" + string(frame) + "\r\n\r\n"
+			w.Write([]byte(data))
+		}
+	})
 	log.Println("server on " + os.Args[1] + "!")
 	log.Panic(http.ListenAndServe(os.Args[1], serveMux))
 }
