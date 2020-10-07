@@ -144,8 +144,10 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 		gocv.Rectangle(&img, rect, color.RGBA{0, 0, 255, 0}, 2)
 		contours_cnt++
 	}
+	if contours_cnt > 10 {
+		contours_cnt = -1
+	}
 	return img, contours_cnt
-
 }
 
 func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel chan gocv.Mat) {
@@ -168,23 +170,49 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 	defer oriImg.Close()
 
 	FrameChannel := make(chan gocv.Mat)
-
+	YoloChannel := make(chan gocv.Mat)
 	type IDetect struct {
 		Thumbnail []byte `json:"thumbnail"`
 		Content   string `json:"content"`
 		Time      string `json:"time"`
 	}
-	go func() { // Queue Thread
+	go func() { // Yolo Thread
 		for {
-			q_img := <-FrameChannel
+			q_img := <-YoloChannel
+			startTime := time.Now()
 			_, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
 			buf, _ := gocv.IMEncode(".jpg", q_img)
 			fmt.Printf("class : %v\n ", detectClass)
 			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
 			server.BroadcastToAll("detect", string(b))
+			elapsedTime := time.Since(startTime)
+
+			fmt.Printf("실행시간: %s\n", elapsedTime)
 		}
 	}()
+	go func() { // Motion Detect Thread
+		var startTime time.Time
+		var endTime time.Duration
+		for img := range FrameChannel {
+			_, motionCnt := MotionDetect(img, mog2)
+			if motionCnt > 0 { // 움직임 감지됐으면
+				if startTime.IsZero() { // 움직임 감지 시작 시간 대입
+					startTime = time.Now()
+				}
+				// else { // 움직이는 중
+				// 	endTime = time.Since(startTime)
+				// }
+			} else { // 중간 움직이는 중 추가해야 함.
+				if !startTime.IsZero() { // 이전에 움직임 감지 경력 있다면
+					endTime = time.Since(startTime)
+					if endTime > time.Second*2 { // 움직임 발견 X이고 2초가 지났을 때
+						startTime = time.Time{} // 초기화
+					}
+				}
+			}
 
+		}
+	}()
 	frameNext := 0
 	for {
 		if ok := cap.Read(&img); !ok {
@@ -194,14 +222,14 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		if img.Empty() {
 			continue
 		}
-		if frameNext >= 10 {
-			// 	// 	go q.Append(img)
-			// 	// 	fmt.Println("frameNext")
-			go func() {
-				FrameChannel <- img
-			}()
-			frameNext = 0
-		}
+		//if frameNext >= 10 {
+		// 	// 	go q.Append(img)
+		// 	// 	fmt.Println("frameNext")
+		go func() {
+			YoloChannel <- img
+		}()
+		//	frameNext = 0
+		//}
 
 		gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
 
