@@ -4,6 +4,12 @@ const mongoose = require('mongoose');
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
+// connect MongoDB
+db = mongoose.createConnection('mongodb://root:GUARDIAN@mongodb:27017/?authSource=admin', {
+    useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false
+}).then(() => console.log('MongoDB Connected'))
+.catch(err => console.log(err));
+
 // app
 const app = express();
 app.get('/', (req, res) => {
