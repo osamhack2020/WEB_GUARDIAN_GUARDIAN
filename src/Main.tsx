@@ -1,7 +1,7 @@
 import React from "react";
 import CameraFrame from "./CameraFrame";
 
-export default function Setting()
+export default function Main()
 {
   return (
     <CameraFrame />
