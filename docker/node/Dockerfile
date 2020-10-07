@@ -4,7 +4,7 @@ FROM node:latest
 WORKDIR /usr/src/app
 
 #package.josn and package-lock.josn
-COPY /home/codespace/workspace/WEB_GUARDIAN_GUARDIAN/package*.json ./
+COPY package*.json ./
 
 RUN npm install
 
@@ -13,4 +13,4 @@ RUN npm install
 COPY . .
 
 EXPOSE 3000
-CMD ["npm", "start-node"]
+CMD ["npm", "start"]
