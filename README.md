@@ -23,11 +23,14 @@
  - Express
  
 ### front-end
- - 
+ - TypeScript
  - React.js  
  - Antd UI Framework  
  - Socket.io
 
+### Infra
+ - Docker
+ 
 ## 설치 안내 (Installation Process)
 - NodeJS + yarn 과 git 설치 (리눅스 우분투 기준)
 ```bash
