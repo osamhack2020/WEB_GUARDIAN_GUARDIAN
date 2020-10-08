@@ -5,7 +5,7 @@ const PORT = 3000;
 const HOST = '0.0.0.0';
 
 // connect MongoDB
-db = mongoose.createConnection('mongodb://root:GUARDIAN@mongodb:27017/?authSource=admin', {
+db = mongoose.createConnection('mongodb://root:GUARDIAN@0.0.0.0:27017/test', {
     useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false
 }).then(() => console.log('MongoDB Connected'))
 .catch(err => console.log(err));
