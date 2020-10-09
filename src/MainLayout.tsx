@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { Layout, Menu, Breadcrumb } from "antd";
+import { Layout,  Menu, Breadcrumb } from "antd";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import {
   DesktopOutlined,
@@ -8,22 +8,15 @@ import {
 } from "@ant-design/icons";
 import "antd/dist/antd.css";
 import Log from "./Log";
+import "./index.css";
 const { Header, Content, Footer, Sider } = Layout;
 
 function LogBar() {
-  const [RightBar, SetRightBar] = useState<boolean>(false);
-  const onRightBar = (collapsed: boolean) => {
-    SetRightBar(collapsed);
-  };
   return (
     <Sider
       style={{ background: "white" }}
       reverseArrow
-      collapsible
       width={300}
-      collapsedWidth={0}
-      collapsed={RightBar}
-      onCollapse={onRightBar}
     >
       <Log />
     </Sider>
@@ -38,11 +31,6 @@ export default function MainLayout({
   setting: React.FunctionComponent;
   dashboard: React.FunctionComponent;
 }) {
-  const [LeftBar, SetLeftBar] = useState<boolean>(false);
-  
-  const onLeftBar = (collapsed: boolean) => {
-    SetLeftBar(collapsed);
-  };
  
   const defaultSelecedKey = useCallback(() => {
     const pathname = window.location.pathname;
@@ -54,10 +42,13 @@ export default function MainLayout({
   return (
     <Router>
       <Layout
-        style={{ minHeight: "100vh", overflowX: "hidden", overflowY: "hidden" }}
+        style={{ height: "100vh", overflowX: "hidden", overflowY: "hidden" }}
       >
-        <Sider collapsible collapsed={LeftBar} onCollapse={onLeftBar}>
+        <Header className="header" style={{background:"#F8EC93"}}>
           <div className="logo" />
+        </Header>
+     <Layout>
+        <Sider >
           <Menu
             theme="dark"
             defaultSelectedKeys={[defaultSelecedKey()]}
@@ -77,7 +68,7 @@ export default function MainLayout({
             </Menu.Item>
           </Menu>
         </Sider>
-        <Layout className="site-layout">
+        <Layout className="site-layout" >
           <Content style={{ margin: "0 16px" }}>
             <div
               className="site-layout-background"
@@ -93,6 +84,7 @@ export default function MainLayout({
           </Footer>
         </Layout>
         <Route exact path="/" component={LogBar} />
+      </Layout>
       </Layout>
     </Router>
   );
