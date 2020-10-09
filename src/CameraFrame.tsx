@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from "react";
 import { Card,Image} from "antd";
 import "./index.css";
-
+import {CameraRTSPUrl} from "./Util";
 /*
 
 > Camera URL
@@ -18,7 +18,7 @@ export default function CameraFrame() {
       <div id="mainFrame">
       <Image
       className="ant-card-hoverable2"
-      src={`http://${window.location.hostname}:8081/camera_1`}
+      src={CameraRTSPUrl[0]}
       />
       </div>
       <div id="firstFrame">
