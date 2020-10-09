@@ -1,6 +1,16 @@
 import React, { useState,useEffect } from "react";
 import { Card,Image} from "antd";
 import "./index.css";
+
+/*
+
+> Camera URL
+`http://${window.location.hostname}:8081/camera_1`
+`http://${window.location.hostname}:8081/camera_2`
+`http://${window.location.hostname}:8081/camera_3`
+    ...
+
+ */
 export default function CameraFrame() {
     const [Frame,SetFrame] = useState<string>('');
   return (
@@ -8,7 +18,7 @@ export default function CameraFrame() {
       <div id="mainFrame">
       <Image
       className="ant-card-hoverable2"
-      src={"http://placehold.it/320x180"}
+      src={`http://${window.location.hostname}:8081/camera_1`}
       />
       </div>
       <div id="firstFrame">

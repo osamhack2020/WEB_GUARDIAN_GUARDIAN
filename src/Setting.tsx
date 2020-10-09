@@ -8,7 +8,7 @@ function drawPoint(ctx: CanvasContext, position: IClickPos) {
   if (ctx)
     ctx.strokeStyle = "rgb(0, 0, 255)"
   ctx?.beginPath();
-  ctx?.arc(position.X, position.Y, 4, 0, 2 * Math.PI, true)
+  ctx?.arc(position.X, position.Y, 2, 0, 2 * Math.PI, true)
   ctx?.fill();
   ctx?.closePath()
 
@@ -51,7 +51,7 @@ export default function Setting() {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     let ctx: CanvasContext = canvas?.getContext('2d');
     console.log(ConvexHullPos);
-    let img: any = new Image();
+    let img: HTMLImageElement = new Image();
     img.onload = function () {
       ctx?.drawImage(img, 0, 0);
 
@@ -65,10 +65,12 @@ export default function Setting() {
       }
 
     };
-    img.src = "https://via.placeholder.com/480x270";
+    img.src = `http://${window.location.hostname}:8081/camera_1`;
   }, [ConvexHullPos])
   return (
     <canvas
+    width="1024"
+    height="768"
       ref={canvasRef}
       style={{ cursor: 'pointer' }}
 
