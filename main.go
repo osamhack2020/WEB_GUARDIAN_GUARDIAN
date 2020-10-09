@@ -14,7 +14,8 @@ import (
 
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
-	"github.com/rs/cors"
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 	"gocv.io/x/gocv"
 )
 
@@ -276,19 +277,26 @@ func main() {
 	DelayChannel := make(chan gocv.Mat)
 	go SendFrame(cap, server, DelayChannel)
 
-	//setup http server
-	serveMux := http.NewServeMux()
-	serveMux.Handle("/socket.io/", server)
-	serveMux.Handle("/", http.FileServer(http.Dir("./assets")))
-	serveMux.HandleFunc("/camera_1", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
+	e := echo.New()
+	e.Use(middleware.CORS())
+	e.GET("/", func(c echo.Context) error {
+		return c.String(http.StatusOK, "Hello World!")
+	})
+
+	e.Any("/socket.io/", func(context echo.Context) error {
+		server.ServeHTTP(context.Response(), context.Request())
+		return nil
+	})
+
+	e.GET("/camera_1", func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 		data := ""
 		for frame := range ViewChannel {
 			data = "--frame\r\n  Content-Type: image/jpeg\r\n\r\n" + string(frame) + "\r\n\r\n"
-			w.Write([]byte(data))
+			c.Response().Write([]byte(data))
 		}
+		return nil
 	})
-	handler := cors.Default().Handler(serveMux)
-	log.Println("server on " + os.Args[1] + "!")
-	log.Panic(http.ListenAndServe(os.Args[1], handler))
+
+	e.Logger.Fatal(e.Start(os.Args[1]))
 }
