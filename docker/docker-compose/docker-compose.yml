@@ -1,0 +1,28 @@
+version: '3.0'
+
+services:
+  node:
+    container_name: node-compose
+    restart: always
+    build: .
+    ports: 
+        - '3000:3000'
+    environment:
+      DATABASE_NAME: 'test'
+      DATABASE_USER: 'test_rw'
+      DATABASE_PASS: '1q2w3e4r'
+    depends_on: 
+      - mongo
+
+  mongo:
+    container_name: mongo-compose
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'GUARDIAN'  
+      MONGO_INITDB_DATABASE: test
+    volumes:
+      - ${PWD}/data/db:/data/db
