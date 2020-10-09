@@ -1,7 +1,7 @@
 # GUARDIAN - CCTV감지체계
 
 # Logo
-[추가 예정]  
+![Logo](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/logo.png)
 
 ## 팀소개 및 프로잭트 설명 동영상
 [추가 예정]  
