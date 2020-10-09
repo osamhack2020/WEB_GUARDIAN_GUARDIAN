@@ -4,3 +4,8 @@ export interface ILogItem{
     content : string,
     time : string
 }
+
+export interface IClickPos{
+    X : number,
+    Y : number
+  }
