@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko">
+	<head>
+		<meta charset="utf-8">
+		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+		<title>CCTV감시</title>
+		<script src="/cdn/jquery/3.5.1/jquery.min.js"></script>
+		<script src="/cdn/socket.io/2.3.1/socket.io.min.js"/></script>
+		<script src="/js/main.js"></script>
+		<style>
+			.img { width: 100%; height: 50px; background-color: lightgray; text-align: center; }
+			.log { float: right; width: 20%; height: 500px; background-color: #80DFFE; text-align: left; }
+			.menu { float: left; width: 20%; height: 500px; background-color: black; text-align: center; color: white; }
+			.log > span { background-color: rgba(0, 0, 0, .6); border: 1px solid black; color: white; display: block; }
+		</style>
+	</head>
+	<body>
+		<div class="img">
+			<img src="/img/osam.png" alt="https://osam.kr"/>
+		</div>
+		<div class="log">
+			<span>테스트1</span>
+			<span>테스트2</span>
+		</div>
+		<div class="menu">
+			<p>메뉴1</p>
+			<p>메뉴2</p>
+			<p>메뉴3</p>
+			<p>메뉴4</p>
+		</div>
+	</body>
+</html>
