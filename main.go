@@ -14,6 +14,7 @@ import (
 
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
+	"github.com/rs/cors"
 	"gocv.io/x/gocv"
 )
 
@@ -196,7 +197,7 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		var endTime time.Duration
 		var startFlag bool
 		for img := range FrameChannel {
-			gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
+			//gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
 			motion, motionCnt := MotionDetect(img, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 				if !startFlag { // 움직임 감지 시작 시간 대입
@@ -219,7 +220,8 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 				}
 			}
 			buf, _ := gocv.IMEncode(".jpg", motion)
-			server.BroadcastToAll("frame", buf)
+			ViewChannel <- buf
+			//server.BroadcastToAll("frame", buf)
 		}
 	}()
 	for {
@@ -233,11 +235,18 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		//if frameNext >= 10 {
 		// 	// 	go q.Append(img)
 		// 	// 	fmt.Println("frameNext")
-		go func(frame gocv.Mat) {
-			gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
-			buf, _ := gocv.IMEncode(".jpg", img)
-			ViewChannel <- buf
-		}(img) // 클로져 안써서 프레임 보장
+
+		// go func(frame gocv.Mat) {
+		// 	frameClone := frame.Clone()
+		// 	gocv.Resize(frameClone, &frameClone, image.Point{}, float64(0.5), float64(0.5), 0)
+		// 	buf, _ := gocv.IMEncode(".jpg", frameClone)
+		// 	ViewChannel <- buf
+		// }(img)
+
+		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
+		FrameChannel <- img
+
+		// 클로져 안써서 프레임 보장
 		//	frameNext = 0
 		//}
 
@@ -271,7 +280,7 @@ func main() {
 	serveMux := http.NewServeMux()
 	serveMux.Handle("/socket.io/", server)
 	serveMux.Handle("/", http.FileServer(http.Dir("./assets")))
-	serveMux.HandleFunc("/video", func(w http.ResponseWriter, r *http.Request) {
+	serveMux.HandleFunc("/camera_1", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "multipart/x-mixed-replace; boundary=frame")
 		data := ""
 		for frame := range ViewChannel {
@@ -279,6 +288,7 @@ func main() {
 			w.Write([]byte(data))
 		}
 	})
+	handler := cors.Default().Handler(serveMux)
 	log.Println("server on " + os.Args[1] + "!")
-	log.Panic(http.ListenAndServe(os.Args[1], serveMux))
+	log.Panic(http.ListenAndServe(os.Args[1], handler))
 }
