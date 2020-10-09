@@ -17,31 +17,31 @@ export default function CameraFrame() {
       <div style={{marginTop:"100px"}}>
       <div id="mainFrame">
       <Image
-      className="ant-card-hoverable2"
+      className="lFrame"
       src={CameraRTSPUrl[0]}
       />
       </div>
       <div id="firstFrame">
       <Image
-      className="ant-card-hoverable"
+      className="sFrame"
       src={"http://placehold.it/320x180"}
       />
       <Image
-      className="ant-card-hoverable"
+      className="sFrame"
       src={"http://placehold.it/320x180"}
       />
       </div>
       <div id="secondFrame">
       <Image
-      className="ant-card-hoverable"
+      className="sFrame"
       src={"http://placehold.it/320x180"}
       />
       <Image
-      className="ant-card-hoverable"
+      className="sFrame"
       src={"http://placehold.it/320x180"}
       />
       <Image
-      className="ant-card-hoverable"
+      className="sFrame"
       src={"http://placehold.it/320x180"}
       />
       </div>
