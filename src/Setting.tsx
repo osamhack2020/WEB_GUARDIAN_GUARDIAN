@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button, Spin } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import { Button, Spin, Row, Col, Dropdown,Menu } from "antd";
+import { LoadingOutlined, DownOutlined } from "@ant-design/icons";
 import { IClickPos } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
@@ -73,12 +73,16 @@ function DetectionAreaBox({ CameraURL }: IDetectionAreaBox) {
       <Spin
         tip="Camera Loading"
         style={{
-          position: "relative",
+          
+          color: "#607D8B",
+          position: "absolute",
           width: `${ScreenX}px`,
           height: `${ScreenY}px`,
         }}
         spinning={Spinning}
-        indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+        indicator={
+          <LoadingOutlined style={{ fontSize: 24, color: "#607D8B" }} spin />
+        }
       >
         <img
           onLoad={() => SetSpinning(false)}
@@ -87,7 +91,7 @@ function DetectionAreaBox({ CameraURL }: IDetectionAreaBox) {
             e.currentTarget.src = CameraRTSPUrl[0];
           }}
           style={{
-            position: "absolute",
+            position: "relative",
             left: 0,
             top: 0,
             width: `${ScreenX}px`,
@@ -108,10 +112,30 @@ function DetectionAreaBox({ CameraURL }: IDetectionAreaBox) {
     </div>
   );
 }
+const menu = (
+  <Menu>
+    <Menu.Item key="0">
+      1st menu item
+    </Menu.Item>
+    <Menu.Item key="1">
+    2nd menu item
+    </Menu.Item>
+    <Menu.Item key="3">3rd menu item</Menu.Item>
+  </Menu>
+);
 export default function Setting() {
   return (
-    <div style={{ position: "relative" }}>
-      <DetectionAreaBox CameraURL={CameraRTSPUrl[0]} />
-    </div>
+    <Row>
+      <Col sm={ScreenY} style={{position:'relative',background:'#C8D2D7'}}>
+          <DetectionAreaBox CameraURL={CameraRTSPUrl[0]} />
+      </Col>
+      <Col>
+        <Dropdown overlay={menu} trigger={["click"]}>
+          <a className="ant-dropdown-link" onClick={(e) => e.preventDefault()}>
+            Click me <DownOutlined />
+          </a>
+        </Dropdown>
+      </Col>
+    </Row>
   );
 }

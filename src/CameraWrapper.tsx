@@ -43,12 +43,12 @@ function Camera({  CameraURL,height }: ICamera) {
 export default function CameraWrapper() {
   return (
     <div>
-      <Row style={{ height: "60vh",marginBottom:16 }} gutter={16}>
+      <Row style={{ height: "63vh"}} gutter={16}>
         <Col span={16}>
-          <Camera CameraURL={CameraRTSPUrl[0]} height="60vh" />
+          <Camera CameraURL={CameraRTSPUrl[0]} height="61.6vh" />
         </Col>
         <Col span={8}>
-          <Row >
+          <Row  gutter={[16,16]}>
           <Col style={{width:'60vh'}}>
             <Camera CameraURL={CameraRTSPUrl[1]} height="30vh" />
             </Col>
