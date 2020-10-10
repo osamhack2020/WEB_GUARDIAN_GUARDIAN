@@ -2,8 +2,11 @@
 
 # docker db
 /docker/docker-compose/data
+
 # dependencies
 /node_modules
+/docker/docker-compose/node_modules
+/docker/node/node_modules
 /.pnp
 .pnp.js
 
