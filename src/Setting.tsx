@@ -3,7 +3,7 @@ import { Button } from "antd";
 import { IClickPos } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
-import { Spin } from "antd";
+import { Spin  } from "antd";
 type CanvasContext = CanvasRenderingContext2D | null | undefined;
 const ScreenX: number = 854;
 const ScreenY: number = 480;
@@ -25,8 +25,10 @@ function drawLine(ctx: CanvasContext, start: IClickPos, end: IClickPos) {
   ctx?.closePath();
   ctx?.stroke();
 }
-
-function DetectionAreaBox() {
+interface IDetectionAreaBox {
+  CameraURL: string;
+}
+function DetectionAreaBox({CameraURL} : IDetectionAreaBox) {
   const [ClickPos, SetPos] = useState<IClickPos[]>([]);
   const [ConvexHullPos, SetConvexHull] = useState<IClickPos[]>([]);
   const [Spinning,SetSpinning] = useState<boolean>(true);
@@ -68,11 +70,11 @@ function DetectionAreaBox() {
   }, [ConvexHullPos]);
   return (
     <div >
-      <Spin tip="Loading..." style={{ position: "relative" }} spinning={Spinning}>
+      <Spin tip="Camera Loading" style={{ position: "relative", width: `${ScreenX}px`,
+          height: `${ScreenY}px` }} spinning={Spinning}>
       <img
         onLoad={()=>SetSpinning(false)}
         onError={(e)=> {
-          console.log("실패")
           e.currentTarget.src = ""
           e.currentTarget.src = CameraRTSPUrl[0]
         }}
@@ -83,7 +85,7 @@ function DetectionAreaBox() {
           width: `${ScreenX}px`,
           height: `${ScreenY}px`,
         }}
-        src={CameraRTSPUrl[0]}
+        src={CameraURL}
       />
       <canvas
         width={`${ScreenX}`}
@@ -101,7 +103,7 @@ function DetectionAreaBox() {
 export default function Setting() {
   return (
     <div style={{ position: "relative" }}>
-      <DetectionAreaBox />
+      <DetectionAreaBox CameraURL={CameraRTSPUrl[0]}/>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import React from "react";
-import CameraFrame from "./CameraFrame";
+import CameraWrapper from "./CameraWrapper";
 
 export default function Main()
 {
   return (
-    <CameraFrame />
+    <CameraWrapper />
   )
 }
