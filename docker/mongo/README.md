@@ -15,6 +15,9 @@ ex)
 > \
 > docker exec -it mongodb mongo -u {admin} -p {password} --authenticationDatabase admin
 
+ex)
+> mongo -u root -p GUARDIAN --authenticationDatabase admin
+
 # connect server
  Server also connects network.
 > docker network create --driver {network_type} {network_name} \
