@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "antd";
+import { Button, Spin } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { IClickPos } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
-import { Spin  } from "antd";
 type CanvasContext = CanvasRenderingContext2D | null | undefined;
 const ScreenX: number = 854;
 const ScreenY: number = 480;
@@ -28,10 +28,10 @@ function drawLine(ctx: CanvasContext, start: IClickPos, end: IClickPos) {
 interface IDetectionAreaBox {
   CameraURL: string;
 }
-function DetectionAreaBox({CameraURL} : IDetectionAreaBox) {
+function DetectionAreaBox({ CameraURL }: IDetectionAreaBox) {
   const [ClickPos, SetPos] = useState<IClickPos[]>([]);
   const [ConvexHullPos, SetConvexHull] = useState<IClickPos[]>([]);
-  const [Spinning,SetSpinning] = useState<boolean>(true);
+  const [Spinning, SetSpinning] = useState<boolean>(true);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onCanvasClick = (e: MouseEvent) => {
     SetPos(ClickPos.concat({ X: e.offsetX, Y: e.offsetY }));
@@ -69,30 +69,38 @@ function DetectionAreaBox({CameraURL} : IDetectionAreaBox) {
     }
   }, [ConvexHullPos]);
   return (
-    <div >
-      <Spin tip="Camera Loading" style={{ position: "relative", width: `${ScreenX}px`,
-          height: `${ScreenY}px` }} spinning={Spinning}>
-      <img
-        onLoad={()=>SetSpinning(false)}
-        onError={(e)=> {
-          e.currentTarget.src = ""
-          e.currentTarget.src = CameraRTSPUrl[0]
-        }}
+    <div>
+      <Spin
+        tip="Camera Loading"
         style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
+          position: "relative",
           width: `${ScreenX}px`,
           height: `${ScreenY}px`,
         }}
-        src={CameraURL}
-      />
-      <canvas
-        width={`${ScreenX}`}
-        height={`${ScreenY}`}
-        ref={canvasRef}
-        style={{ cursor: "pointer", position: "absolute", left: 0, top: 0 }}
-      />
+        spinning={Spinning}
+        indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}
+      >
+        <img
+          onLoad={() => SetSpinning(false)}
+          onError={(e) => {
+            e.currentTarget.src = "";
+            e.currentTarget.src = CameraRTSPUrl[0];
+          }}
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: `${ScreenX}px`,
+            height: `${ScreenY}px`,
+          }}
+          src={CameraURL}
+        />
+        <canvas
+          width={`${ScreenX}`}
+          height={`${ScreenY}`}
+          ref={canvasRef}
+          style={{ cursor: "pointer", position: "absolute", left: 0, top: 0 }}
+        />
       </Spin>
       <Button type="primary" onClick={onClearBtn}>
         초기화
@@ -103,7 +111,7 @@ function DetectionAreaBox({CameraURL} : IDetectionAreaBox) {
 export default function Setting() {
   return (
     <div style={{ position: "relative" }}>
-      <DetectionAreaBox CameraURL={CameraRTSPUrl[0]}/>
+      <DetectionAreaBox CameraURL={CameraRTSPUrl[0]} />
     </div>
   );
 }

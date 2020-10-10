@@ -23,7 +23,7 @@ function Camera({  CameraURL,height }: ICamera) {
   const [Spinning, SetSpinning] = useState<boolean>(true);
   return (
     <Spin tip="Camera Loading" spinning={Spinning} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}>
-      <div style={{height}}>
+      <div style={{height,background:'skyblue'}}>
         <img
           width="100%"
           height="100%"
@@ -40,41 +40,20 @@ function Camera({  CameraURL,height }: ICamera) {
   );
 }
 
-// export default function CameraWrapper() {
-//   return (
-//     <div style={{ marginTop: "100px" }}>
-//       <div id="mainFrame">
-//         <Camera className="lFrame" CameraURL={CameraRTSPUrl[0]} />
-//       </div>
-
-//       <div id="firstFrame">
-
-//         <Image className="sFrame" src={"http://placehold.it/320x180"} />
-//         <Image className="sFrame" src={"http://placehold.it/320x180"} />
-//       </div>
-//       <div id="secondFrame">
-//         <Image className="sFrame" src={"http://placehold.it/320x180"} />
-//         <Image className="sFrame" src={"http://placehold.it/320x180"} />
-//         <Image className="sFrame" src={"http://placehold.it/320x180"} />
-//       </div>
-//     </div>
-//   );
-// }
-
 export default function CameraWrapper() {
   return (
     <div>
       <Row style={{ height: "60vh" }}>
-        <Col style={{ background: "skyblue" }} span={16}>
+        <Col span={16}>
           <Camera CameraURL={CameraRTSPUrl[0]} height="60vh" />
         </Col>
         <Col span={8}>
-          <Row style={{ height: "30vh" , background: "yellow" }}>
+          <Row style={{ height: "30vh" }}>
           <Col style={{width:'60vh'}}>
             <Camera CameraURL={CameraRTSPUrl[1]} height="30vh" />
             </Col>
           </Row>
-          <Row style={{ height: "30vh" , background: "gray" }}>
+          <Row style={{ height: "30vh" }}>
           <Col style={{width:'60vh'}}>
             <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
             </Col>
@@ -82,13 +61,13 @@ export default function CameraWrapper() {
         </Col>
       </Row>
       <Row style={{ height: "30vh" }}>
-        <Col style={{ background: "red" }} span={8}>
+        <Col  span={8}>
         <Camera CameraURL={CameraRTSPUrl[0]} height="30vh" />
         </Col>
-        <Col style={{ background: "green" }} span={8}>
+        <Col  span={8}>
         <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
-        <Col style={{ background: "blue" }} span={8}>
+        <Col  span={8}>
         <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
       </Row>
