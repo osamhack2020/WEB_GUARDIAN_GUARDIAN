@@ -47,12 +47,17 @@ func main() {
 		Y int
 	}
 
+	DetectPoint := [][]Point{}
+
 	e.POST("/SetDetectPoint", func(c echo.Context) error {
 		params := make(map[string][][]Point)
 		c.Bind(&params)
 
-		DetectPoint := params["DetectPoint"]
-		fmt.Printf("%d %d\n", DetectPoint[0][0].X, DetectPoint[0][0].Y)
+		GetDetectPoint := params["DetectPoint"]
+		for _, cameraPoint := range GetDetectPoint {
+			DetectPoint = append(DetectPoint, cameraPoint)
+		}
+		fmt.Printf("%v\n", DetectPoint)
 		return c.JSON(http.StatusOK, "success")
 	})
 
