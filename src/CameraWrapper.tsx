@@ -13,16 +13,16 @@ import { CameraRTSPUrl } from "./Util";
  */
 
 interface ICamera {
-  className?: string;
   CameraURL: string;
+  height: string;
 }
 
-function Camera({ className, CameraURL }: ICamera) {
+function Camera({  CameraURL,height }: ICamera) {
   // Spinner & Auto Reload
   const [Spinning, SetSpinning] = useState<boolean>(true);
   return (
-    <Spin tip="Camera Loading" spinning={Spinning} style={{height:'100vh'}}>
-      <div>
+    <Spin tip="Camera Loading" spinning={Spinning}>
+      <div style={{height}}>
         <img
           style={{width:'100vh'}}
           onLoad={() => SetSpinning(false)} // 로딩 성공 시 Spin 종료
@@ -62,24 +62,32 @@ function Camera({ className, CameraURL }: ICamera) {
 export default function CameraWrapper() {
   return (
     <div>
-      <Row style={{ height: "500px" }}>
+      <Row style={{ height: "60vh" }}>
         <Col style={{ background: "skyblue" }} span={16}>
-        <Camera className="lFrame" CameraURL={CameraRTSPUrl[0]} />
+          <Camera CameraURL={CameraRTSPUrl[0]} height="60vh" />
         </Col>
         <Col span={8}>
-          <Row style={{ height: "250px", background: "yellow" }}>Sub1</Row>
-          <Row style={{ height: "250px", background: "gray" }}>Sub2</Row>
+          <Row style={{ height: "30vh" , background: "yellow" }}>
+          <Col style={{width:'60vh'}}>
+            <Camera CameraURL={CameraRTSPUrl[1]} height="30vh" />
+            </Col>
+          </Row>
+          <Row style={{ height: "30vh" , background: "gray" }}>
+          <Col style={{width:'60vh'}}>
+            <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
+            </Col>
+          </Row>
         </Col>
       </Row>
-      <Row style={{ height: "250px" }}>
+      <Row style={{ height: "30vh" }}>
         <Col style={{ background: "red" }} span={8}>
-          Sub3
+        <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
         <Col style={{ background: "green" }} span={8}>
-          Sub4
+        <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
         <Col style={{ background: "blue" }} span={8}>
-          Sub5
+        <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
       </Row>
     </div>
