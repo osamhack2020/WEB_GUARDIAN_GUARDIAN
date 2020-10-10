@@ -22,8 +22,8 @@ function Camera({  CameraURL,height }: ICamera) {
   // Spinner & Auto Reload
   const [Spinning, SetSpinning] = useState<boolean>(true);
   return (
-    <Spin tip="Camera Loading" spinning={Spinning} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}>
-      <div style={{height,background:'skyblue'}}>
+    <Spin tip="Camera Loading" spinning={Spinning} style={{color:"#607D8B"}} indicator={<LoadingOutlined style={{ fontSize: 24,color:'#607D8B' }} spin />}>
+      <div style={{height,background:'#607D8B'}}>
         <img
           width="100%"
           height="100%"

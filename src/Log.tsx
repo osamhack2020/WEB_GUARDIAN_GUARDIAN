@@ -33,7 +33,7 @@ interface IDetectData{
 }
 export default function Log() {
   const [Data,SetData] = useState<IDetectData[]>([])
-  useEffect((): any =>{
+  useEffect((): any => {
     socket.on('detect', function(res : string){
     //  console.log(res)
       let DetectData = JSON.parse(res);
