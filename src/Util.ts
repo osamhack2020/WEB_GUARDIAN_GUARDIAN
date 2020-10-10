@@ -10,4 +10,4 @@
  */
 
  
-export const CameraRTSPUrl = ((url : string)  => [...Array(8).keys()].map(v => `http://${url}:8081/camera_${v + 1}`))('gron1gh2.southeastasia.cloudapp.azure.com');
+export const CameraRTSPUrl = ((url : string)  => [...Array(6).keys()].map(v => `http://${url}:8081/camera_${v + 1}`))('gron1gh2.southeastasia.cloudapp.azure.com');

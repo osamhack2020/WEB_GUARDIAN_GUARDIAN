@@ -62,7 +62,7 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     // 화면 우클릭 카메라 설정
     () => (
       <Menu>
-        {[...Array(8).keys()].map((v) => (
+        {[...Array(6).keys()].map((v) => (
           <Menu.Item key={v} onClick={() => SetCamera(v)}>
             Camera {v + 1}
           </Menu.Item>
