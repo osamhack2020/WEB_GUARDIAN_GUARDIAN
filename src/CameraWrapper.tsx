@@ -22,8 +22,8 @@ function Camera({  CameraURL,height }: ICamera) {
   // Spinner & Auto Reload
   const [Spinning, SetSpinning] = useState<boolean>(true);
   return (
-    <Spin tip="Camera Loading" spinning={Spinning} style={{color:"#607D8B"}} indicator={<LoadingOutlined style={{ fontSize: 24,color:'#607D8B' }} spin />}>
-      <div style={{height,background:'#607D8B'}}>
+    <Spin tip="Camera Loading" spinning={Spinning} style={{color:"#607D8B"}} indicator={<LoadingOutlined style={{ fontSize: 24,color:'#607D8B'}} spin />}>
+      <div style={{height,background:'#607D8B' }}>
         <img
           width="100%"
           height="100%"
@@ -43,31 +43,31 @@ function Camera({  CameraURL,height }: ICamera) {
 export default function CameraWrapper() {
   return (
     <div>
-      <Row style={{ height: "60vh" }}>
+      <Row style={{ height: "60vh",marginBottom:16 }} gutter={16}>
         <Col span={16}>
           <Camera CameraURL={CameraRTSPUrl[0]} height="60vh" />
         </Col>
         <Col span={8}>
-          <Row style={{ height: "30vh" }}>
+          <Row >
           <Col style={{width:'60vh'}}>
             <Camera CameraURL={CameraRTSPUrl[1]} height="30vh" />
             </Col>
           </Row>
-          <Row style={{ height: "30vh" }}>
+          <Row gutter={[16,16]}>
           <Col style={{width:'60vh'}}>
             <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
             </Col>
           </Row>
         </Col>
       </Row>
-      <Row style={{ height: "30vh" }}>
-        <Col  span={8}>
+      <Row style={{ height: "30vh" }} gutter={16}>
+        <Col span={8}>
         <Camera CameraURL={CameraRTSPUrl[0]} height="30vh" />
         </Col>
-        <Col  span={8}>
+        <Col span={8}>
         <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
-        <Col  span={8}>
+        <Col span={8}>
         <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
         </Col>
       </Row>
