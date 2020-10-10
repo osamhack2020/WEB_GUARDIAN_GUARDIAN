@@ -21,11 +21,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-<<<<<<< HEAD
 /assets/yolov4.weights
-=======
 yarn.lock
 # backend npm modules, session
 backend/node_modules
 backend/sessions
->>>>>>> frontend
