@@ -11,8 +11,6 @@
   "dependencies": {
     "express": "^4.17.1",
     "fs": "0.0.1-security",
-    "gridfs-bucket": "^0.7.4",
-    "gridfs-stream": "^1.1.1",
     "mongoose": "^5.10.8",
     "node": "^14.13.0"
   }
