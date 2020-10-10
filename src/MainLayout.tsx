@@ -99,9 +99,6 @@ export default function MainLayout({
                 <Route path="/dashboard" component={dashboard} />
               </div>
             </Content>
-            <Footer style={{ textAlign: "center", fontWeight: "bold" }}>
-              GUARDIAN - CCTV 감지체계
-          </Footer>
           </Layout>
           <Route exact path="/" component={LogBar} />
         </Layout>

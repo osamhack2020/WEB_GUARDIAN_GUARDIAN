@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Button, Spin, Row, Col, Dropdown,Menu } from "antd";
-import { LoadingOutlined, DownOutlined } from "@ant-design/icons";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Button, Spin, Row, Col, Dropdown, Menu, Slider } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import { IClickPos } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
@@ -26,115 +26,149 @@ function drawLine(ctx: CanvasContext, start: IClickPos, end: IClickPos) {
   ctx?.stroke();
 }
 interface IDetectionAreaBox {
-  CameraURL: string;
+  DefaultCameraIdx: number;
 }
-function DetectionAreaBox({ CameraURL }: IDetectionAreaBox) {
-  const [ClickPos, SetPos] = useState<IClickPos[]>([]);
-  const [ConvexHullPos, SetConvexHull] = useState<IClickPos[]>([]);
+function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
+  const [ClickPos, SetPos] = useState<IClickPos[][]>(
+    Array.from(Array(6), () => new Array())
+  );
+  const [ConvexHullPos, SetConvexHull] = useState<IClickPos[][]>(
+    Array.from(Array(6), () => new Array())
+  );
   const [Spinning, SetSpinning] = useState<boolean>(true);
+  const [CameraIdx, SetCamera] = useState<number>(0);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const onCanvasClick = (e: MouseEvent) => {
-    SetPos(ClickPos.concat({ X: e.offsetX, Y: e.offsetY }));
-  };
-  const onClearBtn = () => {
+
+  const onCanvasClick = useCallback(
+    (e: MouseEvent) => {
+      let Pos = ClickPos.slice();
+      Pos[CameraIdx].push({ X: e.offsetX, Y: e.offsetY });
+      SetPos(Pos);
+    },
+    [CameraIdx, ClickPos]
+  ); // 클릭했을 때, 카메라 화면 바뀌었을 때
+
+  const onClearBtn = useCallback(() => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     let ctx: CanvasContext = canvas?.getContext("2d");
     ctx?.clearRect(0, 0, ScreenX, ScreenY);
-    SetPos([]);
-  };
+    let Pos = ClickPos.slice();
+    Pos[CameraIdx] = [];
+    SetPos(Pos);
+  }, [ClickPos]); // 클릭 했을 때
+
+  const menu = useCallback(
+    // 화면 우클릭 카메라 설정
+    () => (
+      <Menu>
+        {[...Array(8).keys()].map((v) => (
+          <Menu.Item key={v} onClick={() => SetCamera(v)}>
+            Camera {v + 1}
+          </Menu.Item>
+        ))}
+      </Menu>
+    ),
+    []
+  );
+
   useEffect(() => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     canvas?.addEventListener("click", onCanvasClick);
-
-    if (ClickPos.length > 0) SetConvexHull(ConvexHull_2D(ClickPos));
-
+    if (ClickPos[CameraIdx].length > 0) {
+      let Pos = ConvexHullPos.slice();
+      Pos[CameraIdx] = ConvexHull_2D(ClickPos[CameraIdx]);
+      SetConvexHull(Pos);
+    } else if (ClickPos[CameraIdx].length === 0) {
+      // 배열에 간선이 0개 이면 이전에 그려진 그림 초기화
+      let ctx: CanvasContext = canvas?.getContext("2d");
+      ctx?.clearRect(0, 0, ScreenX, ScreenY);
+    }
     return () => {
       canvas?.removeEventListener("click", onCanvasClick);
     };
-  }, [ClickPos]);
+  }, [ClickPos, CameraIdx]); // 클릭했을 때랑 카메라 바뀌었을 때
 
   useEffect(() => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     let ctx: CanvasContext = canvas?.getContext("2d");
     ctx?.clearRect(0, 0, ScreenX, ScreenY);
-    for (var i = 0; i < ConvexHullPos.length; i++) {
+    for (var i = 0; i < ConvexHullPos[CameraIdx].length; i++) {
       // 점 띄우기
-      drawPoint(ctx, ConvexHullPos[i]);
+      drawPoint(ctx, ConvexHullPos[CameraIdx][i]);
     }
-    if (ConvexHullPos.length > 2) {
+    if (ConvexHullPos[CameraIdx].length > 2) {
       // 라인 그리기
-      for (var i = 0; i < ConvexHullPos.length - 1; i++)
-        drawLine(ctx, ConvexHullPos[i], ConvexHullPos[i + 1]);
-      drawLine(ctx, ConvexHullPos[ConvexHullPos.length - 1], ConvexHullPos[0]);
+      for (var i = 0; i < ConvexHullPos[CameraIdx].length - 1; i++)
+        drawLine(
+          ctx,
+          ConvexHullPos[CameraIdx][i],
+          ConvexHullPos[CameraIdx][i + 1]
+        );
+      drawLine(
+        ctx,
+        ConvexHullPos[CameraIdx][ConvexHullPos[CameraIdx].length - 1],
+        ConvexHullPos[CameraIdx][0]
+      );
     }
   }, [ConvexHullPos]);
+
   return (
     <div>
-      <Spin
-        tip="Camera Loading"
-        style={{
-          
-          color: "#607D8B",
-          position: "absolute",
-          width: `${ScreenX}px`,
-          height: `${ScreenY}px`,
-        }}
-        spinning={Spinning}
-        indicator={
-          <LoadingOutlined style={{ fontSize: 24, color: "#607D8B" }} spin />
-        }
-      >
-        <img
-          onLoad={() => SetSpinning(false)}
-          onError={(e) => {
-            e.currentTarget.src = "";
-            e.currentTarget.src = CameraRTSPUrl[0];
-          }}
+      <Dropdown overlay={menu} trigger={["contextMenu"]}>
+        <Spin
+          tip="Camera Loading"
           style={{
-            position: "relative",
-            left: 0,
-            top: 0,
+            color: "#607D8B",
+            position: "absolute",
             width: `${ScreenX}px`,
             height: `${ScreenY}px`,
           }}
-          src={CameraURL}
-        />
-        <canvas
-          width={`${ScreenX}`}
-          height={`${ScreenY}`}
-          ref={canvasRef}
-          style={{ cursor: "pointer", position: "absolute", left: 0, top: 0 }}
-        />
-      </Spin>
-      <Button type="primary" onClick={onClearBtn}>
-        초기화
+          spinning={Spinning}
+          indicator={
+            <LoadingOutlined style={{ fontSize: 24, color: "#607D8B" }} spin />
+          }
+        >
+          <img
+            onLoad={() => SetSpinning(false)}
+            onError={(e) => {
+              e.currentTarget.src = "";
+              e.currentTarget.src = CameraRTSPUrl[CameraIdx];
+            }}
+            style={{
+              position: "relative",
+              left: 0,
+              top: 0,
+              width: `${ScreenX}px`,
+              height: `${ScreenY}px`,
+            }}
+            src={CameraRTSPUrl[CameraIdx]}
+          />
+          <canvas
+            width={`${ScreenX}`}
+            height={`${ScreenY}`}
+            ref={canvasRef}
+            style={{ cursor: "pointer", position: "absolute", left: 0, top: 0 }}
+          />
+        </Spin>
+      </Dropdown>
+      <Button type="primary" onClick={onClearBtn} style={{ width: "100%" }}>
+        영역 설정 초기화
       </Button>
     </div>
   );
 }
-const menu = (
-  <Menu>
-    <Menu.Item key="0">
-      1st menu item
-    </Menu.Item>
-    <Menu.Item key="1">
-    2nd menu item
-    </Menu.Item>
-    <Menu.Item key="3">3rd menu item</Menu.Item>
-  </Menu>
-);
+
 export default function Setting() {
   return (
     <Row>
-      <Col sm={ScreenY} style={{position:'relative',background:'#C8D2D7'}}>
-          <DetectionAreaBox CameraURL={CameraRTSPUrl[0]} />
+      <Col sm={ScreenY} style={{ position: "relative", background: "#C8D2D7" }}>
+        <DetectionAreaBox DefaultCameraIdx={0} />
       </Col>
-      <Col>
-        <Dropdown overlay={menu} trigger={["click"]}>
-          <a className="ant-dropdown-link" onClick={(e) => e.preventDefault()}>
-            Click me <DownOutlined />
-          </a>
-        </Dropdown>
+      <Col flex={1}>
+        <span>
+          설정 <Slider defaultValue={10} tooltipVisible />
+        </span>
       </Col>
     </Row>
   );
