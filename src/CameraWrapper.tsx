@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Spin,Row, Col } from "antd";
 import "./index.css";
 import { CameraRTSPUrl } from "./Util";
+import { LoadingOutlined } from '@ant-design/icons';
 /*
 >>
 > Camera URL
@@ -21,10 +22,11 @@ function Camera({  CameraURL,height }: ICamera) {
   // Spinner & Auto Reload
   const [Spinning, SetSpinning] = useState<boolean>(true);
   return (
-    <Spin tip="Camera Loading" spinning={Spinning}>
+    <Spin tip="Camera Loading" spinning={Spinning} indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />}>
       <div style={{height}}>
         <img
-          style={{width:'100vh'}}
+          width="100%"
+          height="100%"
           onLoad={() => SetSpinning(false)} // 로딩 성공 시 Spin 종료
           onError={(e) => {
             // 로딩 실패 시 경로 재설정 (ReLoad)
@@ -81,7 +83,7 @@ export default function CameraWrapper() {
       </Row>
       <Row style={{ height: "30vh" }}>
         <Col style={{ background: "red" }} span={8}>
-        <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
+        <Camera CameraURL={CameraRTSPUrl[0]} height="30vh" />
         </Col>
         <Col style={{ background: "green" }} span={8}>
         <Camera CameraURL={CameraRTSPUrl[2]} height="30vh" />
