@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -14,6 +15,11 @@ import (
 )
 
 var ViewChannel = make(chan []byte)
+
+type DetectPointInfo struct {
+	ViewSize    image.Point
+	DetectPoint [][]image.Point
+}
 
 // getOutputsNames : YOLO Layer
 func getOutputsNames(net *gocv.Net) []string {
@@ -148,8 +154,34 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 	return img, contours_cnt
 }
 
-func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPoint [][]Point) {
-	cap, err := gocv.OpenVideoCapture("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test")
+func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
+	imgClone := img.Clone()
+	// TransPoint := [][]image.Point{}
+	// for y,yItem := range DetectPoint{
+	// 	for x,xItem := range y{
+	// 		TransPoint[y][x].X = xItem.X * img.Cols() /
+	// 	}
+	// }
+	// 	int remote_x = local_x * remote_width / local_width;
+	// int remote_y = local_y * remote_height / local_height;
+	gocv.Polylines(&imgClone, info.DetectPoint, true, color.RGBA{255, 0, 0, 0}, 1)
+	return imgClone
+	// MAT mask(frame.rows, frame.cols, CV_8UC1, cv::Scalar(0));
+	// MAT result;
+	// if (co_ordinates[0].size())
+	// {
+	// 	vector<vector<Point> >hull(co_ordinates.size());
+	// 	for (size_t i = 0; i < co_ordinates.size(); i++)
+	// 		convexHull(co_ordinates[i], hull[i]);
+	// 	polylines(frame, hull, true, Scalar(255, 0, 0));
+	// 	fillPoly(mask, hull, Scalar(255));
+	// }
+	// frame.copyTo(result, mask);
+	// findContours(mask.clone(), contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+	// return result(boundingRect(contours[0]));
+}
+func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
+	cap, err := gocv.OpenVideoCapture(CapUrl)
 	if err != nil {
 		fmt.Printf("Error opening capture device")
 		return
@@ -180,6 +212,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPoint [][]Point
 		Content   string `json:"content"`
 		Time      string `json:"time"`
 	}
+
 	go func() { // Yolo Thread
 		for {
 			q_img := <-YoloChannel
@@ -226,10 +259,18 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPoint [][]Point
 			//server.BroadcastToAll("frame", buf)
 		}
 	}()
+	var DetectPoint DetectPointInfo
+	go func() {
+		for D := range DetectPointChannel {
+			DetectPoint = D
+			break
+		}
+	}()
 	for {
 		if ok := cap.Read(&img); !ok {
-			fmt.Printf("Device closed\n")
-			return
+			log.Println("RTSP Close")
+			cap, _ = gocv.OpenVideoCapture(CapUrl)
+			log.Println("RTSP ReStart")
 		}
 		if img.Empty() {
 			continue
@@ -241,6 +282,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPoint [][]Point
 		// go func(frame gocv.Mat) {
 		// 	frameClone := frame.Clone()
 		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
+		if len(DetectPoint.DetectPoint) > 0 {
+			img = DetectArea(img, DetectPoint)
+		}
 		buf, _ := gocv.IMEncode(".jpg", img)
 		ViewChannel <- buf
 		// }(img)

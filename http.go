@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"net/http"
 	"os"
@@ -13,11 +14,6 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-type Point struct {
-	X int
-	Y int
-}
-
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
@@ -28,7 +24,7 @@ func main() {
 	})
 
 	// Echo Server
-	DetectPoint := [][]Point{}
+	DetectPointChannel := make(chan DetectPointInfo)
 	e := echo.New()
 	e.Use(middleware.CORS())
 	e.GET("/", func(c echo.Context) error {
@@ -41,14 +37,18 @@ func main() {
 	})
 
 	e.POST("/SetDetectPoint", func(c echo.Context) error {
-		params := make(map[string][][]Point)
+		params := make(map[string]interface{})
 		c.Bind(&params)
 
-		GetDetectPoint := params["DetectPoint"]
-		for _, cameraPoint := range GetDetectPoint {
-			DetectPoint = append(DetectPoint, cameraPoint)
-		}
-		fmt.Printf("%v\n", DetectPoint)
+		GetViewSize := params["ViewSize"].(image.Point)
+		GetDetectPoint := params["DetectPoint"].([][]image.Point)
+
+		SendInfo := DetectPointInfo{GetViewSize, GetDetectPoint}
+		// for _, cameraPoint := range GetDetectPoint {
+		// 	DetectPoint = append(DetectPoint, cameraPoint)
+		// }
+		fmt.Printf("%v\n", SendInfo)
+		DetectPointChannel <- SendInfo
 		return c.JSON(http.StatusOK, "success")
 	})
 
@@ -62,8 +62,9 @@ func main() {
 		return nil
 	})
 
+	go DetectStart("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test", server, DetectPointChannel)
 	// Core
-	go DetectStart("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test", server, DetectPoint)
+	// go DetectStart("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test", server, DetectPoint)
 
 	e.Logger.Fatal(e.Start(os.Args[1])) // go run *.go :8081
 }
