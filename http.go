@@ -11,26 +11,24 @@ import (
 	"github.com/graarh/golang-socketio/transport"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"gocv.io/x/gocv"
 )
+
+type Point struct {
+	X int
+	Y int
+}
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	// Socket.io Server
 	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
 		log.Println("New client connected")
 	})
-	//"rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov"
-	cap, err := gocv.OpenVideoCapture("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test")
-	if err != nil {
-		fmt.Printf("Error opening capture device")
-		return
-	}
-	defer cap.Close()
 
-	DelayChannel := make(chan gocv.Mat)
-	go SendFrame(cap, server, DelayChannel)
-
+	// Echo Server
+	DetectPoint := [][]Point{}
 	e := echo.New()
 	e.Use(middleware.CORS())
 	e.GET("/", func(c echo.Context) error {
@@ -41,13 +39,6 @@ func main() {
 		server.ServeHTTP(context.Response(), context.Request())
 		return nil
 	})
-
-	type Point struct {
-		X int
-		Y int
-	}
-
-	DetectPoint := [][]Point{}
 
 	e.POST("/SetDetectPoint", func(c echo.Context) error {
 		params := make(map[string][][]Point)
@@ -71,5 +62,8 @@ func main() {
 		return nil
 	})
 
-	e.Logger.Fatal(e.Start(os.Args[1]))
+	// Core
+	go DetectStart("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test", server, DetectPoint)
+
+	e.Logger.Fatal(e.Start(os.Args[1])) // go run *.go :8081
 }

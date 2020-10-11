@@ -148,7 +148,14 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 	return img, contours_cnt
 }
 
-func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel chan gocv.Mat) {
+func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPoint [][]Point) {
+	cap, err := gocv.OpenVideoCapture("rtsp://gron1gh2.southeastasia.cloudapp.azure.com:8554/test")
+	if err != nil {
+		fmt.Printf("Error opening capture device")
+		return
+	}
+	defer cap.Close()
+
 	// Motion Init
 	mog2 := gocv.NewBackgroundSubtractorMOG2()
 	defer mog2.Close()
@@ -181,7 +188,7 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 			buf, _ := gocv.IMEncode(".jpg", q_img)
 			fmt.Printf("class : %v\n ", detectClass)
 			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
-			server.BroadcastToAll("detect", string(b))
+			Server.BroadcastToAll("detect", string(b))
 			elapsedTime := time.Since(startTime)
 
 			fmt.Printf("실행시간: %s\n", elapsedTime)
