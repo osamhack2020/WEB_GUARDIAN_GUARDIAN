@@ -6,20 +6,20 @@ import (
 	"image"
 	"image/color"
 	"log"
-	"net/http"
 	"os"
-	"runtime"
 	"strings"
 	"time"
 
 	gosocketio "github.com/graarh/golang-socketio"
-	"github.com/graarh/golang-socketio/transport"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 	"gocv.io/x/gocv"
 )
 
 var ViewChannel = make(chan []byte)
+
+type DetectPointInfo struct {
+	ViewSize    image.Point
+	DetectPoint [][]image.Point
+}
 
 // getOutputsNames : YOLO Layer
 func getOutputsNames(net *gocv.Net) []string {
@@ -96,6 +96,17 @@ func drawRect(img gocv.Mat, boxes []image.Rectangle, classes []string, classIds 
 	return img, detectClass
 }
 
+// TransPos : Frontend ViewSize => CV Mat ViewSize
+func TransPos(FrontInfo DetectPointInfo, CameraIdx int, CvViewSize image.Point) [][]image.Point {
+	TransPoint := make([][]image.Point, 1)
+	for x := 0; x < len(FrontInfo.DetectPoint[CameraIdx]); x++ {
+		transX := FrontInfo.DetectPoint[CameraIdx][x].X * CvViewSize.X / FrontInfo.ViewSize.X
+		transY := FrontInfo.DetectPoint[CameraIdx][x].Y * CvViewSize.Y / FrontInfo.ViewSize.Y
+		TransPoint[0] = append(TransPoint[0], image.Pt(transX, transY))
+	}
+	return TransPoint
+}
+
 // Detect : Run YOLOv4 Process
 func Detect(net *gocv.Net, src gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string) (gocv.Mat, []string) {
 	img := src.Clone()
@@ -154,7 +165,33 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 	return img, contours_cnt
 }
 
-func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel chan gocv.Mat) {
+func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
+
+	imgClone := img.Clone()
+	if len(info.DetectPoint) == 0 {
+		return imgClone
+	}
+	mask := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
+	defer mask.Close()
+	result := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
+	defer result.Close()
+
+	TransPoint := TransPos(info, 0, image.Point{imgClone.Cols(), imgClone.Rows()})
+
+	gocv.FillPoly(&mask, TransPoint, color.RGBA{255, 255, 255, 0})
+	imgClone.CopyToWithMask(&result, mask)
+	boundingRect := gocv.BoundingRect(gocv.FindContours(mask.Clone(), gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
+	return result.Region(boundingRect)
+
+}
+func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
+	cap, err := gocv.OpenVideoCapture(CapUrl)
+	if err != nil {
+		fmt.Printf("Error opening capture device")
+		return
+	}
+	defer cap.Close()
+
 	// Motion Init
 	mog2 := gocv.NewBackgroundSubtractorMOG2()
 	defer mog2.Close()
@@ -179,6 +216,7 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		Content   string `json:"content"`
 		Time      string `json:"time"`
 	}
+
 	go func() { // Yolo Thread
 		for {
 			q_img := <-YoloChannel
@@ -187,7 +225,7 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 			buf, _ := gocv.IMEncode(".jpg", q_img)
 			fmt.Printf("class : %v\n ", detectClass)
 			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
-			server.BroadcastToAll("detect", string(b))
+			Server.BroadcastToAll("detect", string(b))
 			elapsedTime := time.Since(startTime)
 
 			fmt.Printf("실행시간: %s\n", elapsedTime)
@@ -225,10 +263,17 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 			//server.BroadcastToAll("frame", buf)
 		}
 	}()
+	var DPI DetectPointInfo
+	go func() { // Set DetectPointInfo
+		for D := range DetectPointChannel {
+			DPI = D
+		}
+	}()
 	for {
 		if ok := cap.Read(&img); !ok {
-			fmt.Printf("Device closed\n")
-			return
+			log.Println("RTSP Close")
+			cap, _ = gocv.OpenVideoCapture(CapUrl)
+			log.Println("RTSP ReStart")
 		}
 		if img.Empty() {
 			continue
@@ -239,13 +284,16 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 
 		// go func(frame gocv.Mat) {
 		// 	frameClone := frame.Clone()
-		// 	gocv.Resize(frameClone, &frameClone, image.Point{}, float64(0.5), float64(0.5), 0)
-		// 	buf, _ := gocv.IMEncode(".jpg", frameClone)
-		// 	ViewChannel <- buf
+		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
+		//if len(DPI.DetectPoint) > 0 {
+		img = DetectArea(img, DPI)
+		//}
+		buf, _ := gocv.IMEncode(".jpg", img)
+		ViewChannel <- buf
 		// }(img)
 
-		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
-		FrameChannel <- img
+		//gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
+		//FrameChannel <- img
 
 		// 클로져 안써서 프레임 보장
 		//	frameNext = 0
@@ -259,6 +307,7 @@ func SendFrame(cap *gocv.VideoCapture, server *gosocketio.Server, DelayChannel c
 		gocv.WaitKey(1)
 	}
 }
+<<<<<<< HEAD:main.go
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -301,3 +350,5 @@ func main() {
 	e.Logger.Fatal(e.Start(os.Args[1]))
 }
 
+=======
+>>>>>>> backend:cv_util.go
