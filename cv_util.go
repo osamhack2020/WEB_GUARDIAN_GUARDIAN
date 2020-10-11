@@ -15,6 +15,7 @@ import (
 )
 
 var ViewChannel = make(chan []byte)
+var encodingSize image.Point = image.Point{854, 480}
 
 type DetectPointInfo struct {
 	ViewSize    image.Point
@@ -176,14 +177,14 @@ func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
 	result := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
 	defer result.Close()
 
-	TransPoint := TransPos(info, 0, image.Point{imgClone.Cols(), imgClone.Rows()})
+	//TransPoint := TransPos(info, 0, image.Point{imgClone.Cols(), imgClone.Rows()})
 
-	gocv.FillPoly(&mask, TransPoint, color.RGBA{255, 255, 255, 0})
+	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
 	imgClone.CopyToWithMask(&result, mask)
 	boundingRect := gocv.BoundingRect(gocv.FindContours(mask.Clone(), gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
 	return result.Region(boundingRect)
-
 }
+
 func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
 	cap, err := gocv.OpenVideoCapture(CapUrl)
 	if err != nil {
@@ -220,15 +221,13 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	go func() { // Yolo Thread
 		for {
 			q_img := <-YoloChannel
-			startTime := time.Now()
-			_, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
-			buf, _ := gocv.IMEncode(".jpg", q_img)
+			detectImg, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
+			buf, _ := gocv.IMEncode(".jpg", detectImg)
 			fmt.Printf("class : %v\n ", detectClass)
-			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
-			Server.BroadcastToAll("detect", string(b))
-			elapsedTime := time.Since(startTime)
-
-			fmt.Printf("실행시간: %s\n", elapsedTime)
+			if len(detectClass) > 0 {
+				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
+				Server.BroadcastToAll("detect", string(b))
+			}
 		}
 	}()
 	go func() { // Motion Detect Thread
@@ -237,36 +236,38 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		var startFlag bool
 		for img := range FrameChannel {
 			//gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
-			motion, motionCnt := MotionDetect(img, mog2)
+			_, motionCnt := MotionDetect(img, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 				if !startFlag { // 움직임 감지 시작 시간 대입
 					startFlag = true
 					fmt.Println("감지 시작")
-				} else {
-					fmt.Printf("감지 중 %d\n", motionCnt)
+					startTime = time.Now()
+
+					go func() { // Yolo Start
+						YoloChannel <- img
+					}()
+
 				}
 			} else { // 움직임 감지없으면
-				if startFlag { // 이전에 움직임 감지 경력 있다면
-					startTime = time.Now()
-				} else if !startTime.IsZero() {
+				if startFlag {
 					endTime = time.Since(startTime)
-					fmt.Printf("%v\n", endTime.Seconds())
-					if endTime > time.Second*2 { // 2초가 지났을 때
-						startTime = time.Time{} // 초기화
-						startFlag = false
-						fmt.Println("감지 끝")
+					//fmt.Printf("%s %s\n", endTime, time.Second*5)
+					startFlag = false
+
+					if endTime > time.Second*3 { // 움직임 분기 (움직임 감지 3초 유지)
+						// Process
 					}
 				}
 			}
-			buf, _ := gocv.IMEncode(".jpg", motion)
-			ViewChannel <- buf
+			//buf, _ := gocv.IMEncode(".jpg", motion)
+			//ViewChannel <- buf
 			//server.BroadcastToAll("frame", buf)
 		}
 	}()
 	var DPI DetectPointInfo
 	go func() { // Set DetectPointInfo
 		for D := range DetectPointChannel {
-			DPI = D
+			DPI = DetectPointInfo{D.ViewSize, TransPos(D, 0, encodingSize)}
 		}
 	}()
 	for {
@@ -278,31 +279,15 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		if img.Empty() {
 			continue
 		}
-		//if frameNext >= 10 {
-		// 	// 	go q.Append(img)
-		// 	// 	fmt.Println("frameNext")
 
-		// go func(frame gocv.Mat) {
-		// 	frameClone := frame.Clone()
-		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
-		//if len(DPI.DetectPoint) > 0 {
-		img = DetectArea(img, DPI)
-		//}
+		gocv.Resize(img, &img, encodingSize, 0, 0, 0)
 		buf, _ := gocv.IMEncode(".jpg", img)
 		ViewChannel <- buf
-		// }(img)
 
-		//gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
-		//FrameChannel <- img
-
-		// 클로져 안써서 프레임 보장
-		//	frameNext = 0
-		//}
-
-		//	gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
-
-		//buf, _ := gocv.IMEncode(".jpg", img)
-		//server.BroadcastToAll("frame", buf)
+		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우
+			roi := DetectArea(img, DPI)
+			FrameChannel <- roi
+		}
 
 		gocv.WaitKey(1)
 	}
