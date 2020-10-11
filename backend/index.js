@@ -78,6 +78,21 @@ io.on('connection', function(socket) {
 		//io.to(id).emit('log', data);
 	});*/
 
+	// CCTV감지 앱으로부터의 메시지가 수신되면
+	socket.on('log_input_be', function(data) {
+		console.log('be : ' + data);
+
+		// log 방에 접속된 모든 클라이언트에게 메시지를 전송한다
+		io.emit('log', data);
+	});
+
+	// 프론트의 메시지가 수신되면
+	socket.on('log_input', function(data) {
+		console.log('fe : ' + data);
+
+		// log 방에 접속된 모든 클라이언트에게 메시지를 전송한다
+		io.emit('log', data);
+	});
 
 	// 연결 종료 (force client disconnect from server)
 	socket.on('forceDisconnect', function() {
