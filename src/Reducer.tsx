@@ -1,6 +1,7 @@
 import { createStore, combineReducers } from "redux";
 import { createActionCreators, createReducerFunction, ImmerReducer,composeReducers } from "immer-reducer";
 import {CameraRTSPUrl} from "./Util";
+import {IClickPos} from "./Interface";
 export interface IMainState
 {
     ViewURL : string[]
@@ -9,6 +10,7 @@ export interface IMainState
 export interface ISettingState
 {
     UseCamera : string[]
+    ConvexHullPos : IClickPos[][]
 }
 
 // State Init
@@ -38,18 +40,19 @@ class MainReducer extends ImmerReducer<IMainState>{
 }
 
 const SettingState: (ISettingState) = {
-    UseCamera: []
+    UseCamera: [],
+    ConvexHullPos: Array.from(Array(6), () => new Array())
 }
 class SettingReducer extends ImmerReducer<ISettingState>{
-   SetCode(code : string)
+   SetConvexHullPos(cameraIdx : number, Pos : IClickPos[])
    {
-       this.draftState.UseCamera.push(code)
+       this.draftState.ConvexHullPos[cameraIdx] = Pos;
    }
 }
 
 // Export (Store) and (Function for Dispatch)
 export const MainActions = createActionCreators(MainReducer);
-export const CodeActions = createActionCreators(SettingReducer);
+export const SettinActions = createActionCreators(SettingReducer);
 
 const mainReducer = createReducerFunction(MainReducer, MainState);
 const settingReducer = createReducerFunction(SettingReducer, SettingState);

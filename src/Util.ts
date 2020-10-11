@@ -1,4 +1,4 @@
-
+import {BACKEND_URL} from "./Constant";
 /*
 
 > Camera URL
@@ -10,4 +10,4 @@
  */
 
  
-export const CameraRTSPUrl = ((url : string)  => [...Array(6).keys()].map(v => `http://${url}:8081/camera_${v + 1}`))('gron1gh2.southeastasia.cloudapp.azure.com');
+export const CameraRTSPUrl = [...Array(6).keys()].map(v => `${BACKEND_URL}/camera_${v + 1}`);
