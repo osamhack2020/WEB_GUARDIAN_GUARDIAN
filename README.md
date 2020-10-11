@@ -1,4 +1,4 @@
-# GUARDIAN - CCTV감지체계 - 웹서버
+# GUARDIAN - CCTV감지체계 - 웹서버(WEB Backend)
 
 # Logo
 ![Logo](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/midend/logo.png)
@@ -42,4 +42,4 @@ $ yarn install
 $ node index.js 나 nodemon index.js
 // 노드몬을 쓰면 파일이변경될때마다 재시작해줌. 개발용
 ```
-인터넷 브라우저 접속 http://localhost
+인터넷 브라우저 접속 http://localhost = 임시 테스트 프론트(html, js)
