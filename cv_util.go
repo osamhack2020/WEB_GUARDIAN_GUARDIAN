@@ -96,6 +96,17 @@ func drawRect(img gocv.Mat, boxes []image.Rectangle, classes []string, classIds 
 	return img, detectClass
 }
 
+// TransPos : Frontend ViewSize => CV Mat ViewSize
+func TransPos(FrontInfo DetectPointInfo, CameraIdx int, CvViewSize image.Point) [][]image.Point {
+	TransPoint := make([][]image.Point, 1)
+	for x := 0; x < len(FrontInfo.DetectPoint[CameraIdx]); x++ {
+		transX := FrontInfo.DetectPoint[CameraIdx][x].X * CvViewSize.X / FrontInfo.ViewSize.X
+		transY := FrontInfo.DetectPoint[CameraIdx][x].Y * CvViewSize.Y / FrontInfo.ViewSize.Y
+		TransPoint[0] = append(TransPoint[0], image.Pt(transX, transY))
+	}
+	return TransPoint
+}
+
 // Detect : Run YOLOv4 Process
 func Detect(net *gocv.Net, src gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string) (gocv.Mat, []string) {
 	img := src.Clone()
@@ -155,37 +166,23 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 }
 
 func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
+
 	imgClone := img.Clone()
-
-	TransPoint := make([][]image.Point, len(info.DetectPoint))
-
-	for y := 0; y < len(TransPoint); y++ {
-		TransPoint[y] = make([]image.Point, len(info.DetectPoint[y]))
-		for x := 0; x < len(TransPoint[y]); x++ {
-			TransPoint[y][x] = image.Point{info.DetectPoint[y][x].X * img.Cols() / info.ViewSize.X, info.DetectPoint[y][x].Y * img.Rows() / info.ViewSize.Y}
-
-		}
+	if len(info.DetectPoint) == 0 {
+		return imgClone
 	}
+	mask := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
+	defer mask.Close()
+	result := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
+	defer result.Close()
 
-	fmt.Printf("Ori %v\n", info.DetectPoint)
-	fmt.Printf("Trans %v\n", TransPoint)
-	// 	int remote_x = local_x * remote_width / local_width;
-	// int remote_y = local_y * remote_height / local_height;
-	gocv.Polylines(&imgClone, TransPoint, true, color.RGBA{255, 0, 0, 0}, 1)
-	return imgClone
-	// MAT mask(frame.rows, frame.cols, CV_8UC1, cv::Scalar(0));
-	// MAT result;
-	// if (co_ordinates[0].size())
-	// {
-	// 	vector<vector<Point> >hull(co_ordinates.size());
-	// 	for (size_t i = 0; i < co_ordinates.size(); i++)
-	// 		convexHull(co_ordinates[i], hull[i]);
-	// 	polylines(frame, hull, true, Scalar(255, 0, 0));
-	// 	fillPoly(mask, hull, Scalar(255));
-	// }
-	// frame.copyTo(result, mask);
-	// findContours(mask.clone(), contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-	// return result(boundingRect(contours[0]));
+	TransPoint := TransPos(info, 0, image.Point{imgClone.Cols(), imgClone.Rows()})
+
+	gocv.FillPoly(&mask, TransPoint, color.RGBA{255, 255, 255, 0})
+	imgClone.CopyToWithMask(&result, mask)
+	boundingRect := gocv.BoundingRect(gocv.FindContours(mask.Clone(), gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
+	return result.Region(boundingRect)
+
 }
 func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
 	cap, err := gocv.OpenVideoCapture(CapUrl)
@@ -288,9 +285,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		// go func(frame gocv.Mat) {
 		// 	frameClone := frame.Clone()
 		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
-		if len(DPI.DetectPoint) > 0 {
-			img = DetectArea(img, DPI)
-		}
+		//if len(DPI.DetectPoint) > 0 {
+		img = DetectArea(img, DPI)
+		//}
 		buf, _ := gocv.IMEncode(".jpg", img)
 		ViewChannel <- buf
 		// }(img)
