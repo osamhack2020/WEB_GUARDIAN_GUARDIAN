@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { Layout, Menu, Breadcrumb } from "antd";
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
+import {RuningFooter} from "./Setting";
 import {
   DesktopOutlined,
   PieChartOutlined,
@@ -99,10 +100,16 @@ export default function MainLayout({
                 <Route path="/dashboard" component={dashboard} />
               </div>
             </Content>
+            <Route exact path="/setting" component={RuningFooter} />
+           
           </Layout>
           <Route exact path="/" component={LogBar} />
+          
         </Layout>
+        
+       
       </Layout>
+      
     </Router>
   );
 }

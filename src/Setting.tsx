@@ -1,9 +1,30 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Button, Spin, Row, Col, Dropdown, Menu, Slider } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
-import { IClickPos } from "./Interface";
+import {
+  Button,
+  Spin,
+  Row,
+  Col,
+  Dropdown,
+  Menu,
+  Slider,
+  Layout,
+  Tag,
+} from "antd";
+import {
+  LoadingOutlined,
+  SyncOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined,
+} from "@ant-design/icons";
+import { useSelector, useDispatch } from "react-redux";
+import { SettinActions } from "./Reducer";
+import { IClickPos, ISelect } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
+import axios from "axios";
+import produce from "immer";
+import { BACKEND_URL } from "./Constant";
 type CanvasContext = CanvasRenderingContext2D | null | undefined;
 const ScreenX: number = 854;
 const ScreenY: number = 480;
@@ -29,10 +50,11 @@ interface IDetectionAreaBox {
   DefaultCameraIdx: number;
 }
 function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
-  const [ClickPos, SetPos] = useState<IClickPos[][]>(
-    Array.from(Array(6), () => new Array())
+  const dispatch = useDispatch();
+  const ConvexHullPos = useSelector(
+    (state: ISelect) => state.settingReducer.ConvexHullPos
   );
-  const [ConvexHullPos, SetConvexHull] = useState<IClickPos[][]>(
+  const [ClickPos, SetPos] = useState<IClickPos[][]>(
     Array.from(Array(6), () => new Array())
   );
   const [Spinning, SetSpinning] = useState<boolean>(true);
@@ -42,9 +64,11 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
 
   const onCanvasClick = useCallback(
     (e: MouseEvent) => {
-      let Pos = ClickPos.slice();
-      Pos[CameraIdx].push({ X: e.offsetX, Y: e.offsetY });
-      SetPos(Pos);
+      SetPos(
+        produce(ClickPos, (draft) => {
+          draft[CameraIdx].push({ X: e.offsetX, Y: e.offsetY });
+        })
+      );
     },
     [CameraIdx, ClickPos]
   ); // 클릭했을 때, 카메라 화면 바뀌었을 때
@@ -71,14 +95,11 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     ),
     []
   );
-
   useEffect(() => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     canvas?.addEventListener("click", onCanvasClick);
     if (ClickPos[CameraIdx].length > 0) {
-      let Pos = ConvexHullPos.slice();
-      Pos[CameraIdx] = ConvexHull_2D(ClickPos[CameraIdx]);
-      SetConvexHull(Pos);
+      dispatch(SettinActions.SetConvexHullPos(CameraIdx, ClickPos[CameraIdx]));
     } else if (ClickPos[CameraIdx].length === 0) {
       // 배열에 간선이 0개 이면 이전에 그려진 그림 초기화
       let ctx: CanvasContext = canvas?.getContext("2d");
@@ -111,7 +132,7 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
         ConvexHullPos[CameraIdx][0]
       );
     }
-  }, [ConvexHullPos]);
+  }, [ConvexHullPos,CameraIdx]);
 
   return (
     <div>
@@ -159,17 +180,82 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
   );
 }
 
+const StateTag = {
+  success: (
+    <Tag icon={<CheckCircleOutlined />} color="success">
+      success
+    </Tag>
+  ),
+  processing: (
+    <Tag icon={<SyncOutlined spin />} color="processing">
+      processing
+    </Tag>
+  ),
+  fail: (
+    <Tag icon={<CloseCircleOutlined />} color="error">
+      error
+    </Tag>
+  ),
+  wait: (
+    <Tag icon={<ClockCircleOutlined />} color="default">
+      wait
+    </Tag>
+  ),
+};
+
+export function RuningFooter() {
+  const ConvexHullPos = useSelector(
+    (state: ISelect) => state.settingReducer.ConvexHullPos
+  );
+  const [WorkState, SetWorkState] = useState(StateTag.wait);
+  const PostPos = () => {
+    axios.post(`${BACKEND_URL}/SetDetectData`,ConvexHullPos);
+  };
+  return (
+    <Layout.Footer
+      style={{ background: "white", borderTop: "1px solid rgb(206,206,206)" }}
+    >
+      <Button
+        type="primary"
+        onClick={() => {
+          SetWorkState(StateTag.processing); // 임시 상태 테스트
+          setTimeout(() => {
+            SetWorkState(StateTag.success);
+            console.log(ConvexHullPos);
+            axios.post(`${BACKEND_URL}/SetDetectPoint`,{DetectPoint:ConvexHullPos}).then(function (response) {
+              console.log(response);
+            });
+          }, 1000);
+        }}
+      >
+        감지시작
+      </Button>
+      <Button type="primary" disabled>
+        감지중지
+      </Button>
+      {WorkState}
+    </Layout.Footer>
+  );
+}
 export default function Setting() {
   return (
-    <Row>
-      <Col sm={ScreenY} style={{ position: "relative", background: "#C8D2D7" }}>
-        <DetectionAreaBox DefaultCameraIdx={0} />
-      </Col>
-      <Col flex={1}>
-        <span>
-          설정 <Slider defaultValue={10} tooltipVisible />
-        </span>
-      </Col>
-    </Row>
+    <>
+      <Row>
+        <Col
+          sm={ScreenY}
+          style={{ position: "relative", background: "#C8D2D7" }}
+        >
+          <DetectionAreaBox DefaultCameraIdx={0} />
+        </Col>
+        <Col flex={1}>
+          <span>
+            설정 <Slider defaultValue={10} tooltipVisible />
+          </span>
+          <Button type="primary" style={{ width: "100%" }}>
+            감지 시작
+          </Button>
+        </Col>
+      </Row>
+    </>
   );
 }
