@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"log"
 	"net/http"
 	"os"
@@ -37,16 +36,8 @@ func main() {
 	})
 
 	e.POST("/SetDetectPoint", func(c echo.Context) error {
-		params := make(map[string]interface{})
-		c.Bind(&params)
-
-		GetViewSize := params["ViewSize"].(image.Point)
-		GetDetectPoint := params["DetectPoint"].([][]image.Point)
-
-		SendInfo := DetectPointInfo{GetViewSize, GetDetectPoint}
-		// for _, cameraPoint := range GetDetectPoint {
-		// 	DetectPoint = append(DetectPoint, cameraPoint)
-		// }
+		SendInfo := DetectPointInfo{}
+		c.Bind(&SendInfo)
 		fmt.Printf("%v\n", SendInfo)
 		DetectPointChannel <- SendInfo
 		return c.JSON(http.StatusOK, "success")

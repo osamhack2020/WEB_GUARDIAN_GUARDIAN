@@ -156,15 +156,22 @@ func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, i
 
 func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
 	imgClone := img.Clone()
-	// TransPoint := [][]image.Point{}
-	// for y,yItem := range DetectPoint{
-	// 	for x,xItem := range y{
-	// 		TransPoint[y][x].X = xItem.X * img.Cols() /
-	// 	}
-	// }
+
+	TransPoint := make([][]image.Point, len(info.DetectPoint))
+
+	for y := 0; y < len(TransPoint); y++ {
+		TransPoint[y] = make([]image.Point, len(info.DetectPoint[y]))
+		for x := 0; x < len(TransPoint[y]); x++ {
+			TransPoint[y][x] = image.Point{info.DetectPoint[y][x].X * img.Cols() / info.ViewSize.X, info.DetectPoint[y][x].Y * img.Rows() / info.ViewSize.Y}
+
+		}
+	}
+
+	fmt.Printf("Ori %v\n", info.DetectPoint)
+	fmt.Printf("Trans %v\n", TransPoint)
 	// 	int remote_x = local_x * remote_width / local_width;
 	// int remote_y = local_y * remote_height / local_height;
-	gocv.Polylines(&imgClone, info.DetectPoint, true, color.RGBA{255, 0, 0, 0}, 1)
+	gocv.Polylines(&imgClone, TransPoint, true, color.RGBA{255, 0, 0, 0}, 1)
 	return imgClone
 	// MAT mask(frame.rows, frame.cols, CV_8UC1, cv::Scalar(0));
 	// MAT result;
@@ -259,11 +266,10 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			//server.BroadcastToAll("frame", buf)
 		}
 	}()
-	var DetectPoint DetectPointInfo
-	go func() {
+	var DPI DetectPointInfo
+	go func() { // Set DetectPointInfo
 		for D := range DetectPointChannel {
-			DetectPoint = D
-			break
+			DPI = D
 		}
 	}()
 	for {
@@ -282,8 +288,8 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		// go func(frame gocv.Mat) {
 		// 	frameClone := frame.Clone()
 		gocv.Resize(img, &img, image.Point{}, float64(0.5), float64(0.5), 0)
-		if len(DetectPoint.DetectPoint) > 0 {
-			img = DetectArea(img, DetectPoint)
+		if len(DPI.DetectPoint) > 0 {
+			img = DetectArea(img, DPI)
 		}
 		buf, _ := gocv.IMEncode(".jpg", img)
 		ViewChannel <- buf
