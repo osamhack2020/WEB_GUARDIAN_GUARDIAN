@@ -221,15 +221,13 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	go func() { // Yolo Thread
 		for {
 			q_img := <-YoloChannel
-			startTime := time.Now()
-			_, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
-			buf, _ := gocv.IMEncode(".jpg", q_img)
+			detectImg, detectClass := Detect(&net, q_img, 0.45, 0.5, OutputNames, classes)
+			buf, _ := gocv.IMEncode(".jpg", detectImg)
 			fmt.Printf("class : %v\n ", detectClass)
-			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
-			Server.BroadcastToAll("detect", string(b))
-			elapsedTime := time.Since(startTime)
-
-			fmt.Printf("실행시간: %s\n", elapsedTime)
+			if len(detectClass) > 0 {
+				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
+				Server.BroadcastToAll("detect", string(b))
+			}
 		}
 	}()
 	go func() { // Motion Detect Thread
@@ -238,29 +236,31 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		var startFlag bool
 		for img := range FrameChannel {
 			//gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
-			motion, motionCnt := MotionDetect(img, mog2)
+			_, motionCnt := MotionDetect(img, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 				if !startFlag { // 움직임 감지 시작 시간 대입
 					startFlag = true
 					fmt.Println("감지 시작")
-				} else {
-					fmt.Printf("감지 중 %d\n", motionCnt)
+					startTime = time.Now()
+
+					go func() { // Yolo Start
+						YoloChannel <- img
+					}()
+
 				}
 			} else { // 움직임 감지없으면
-				if startFlag { // 이전에 움직임 감지 경력 있다면
-					startTime = time.Now()
-				} else if !startTime.IsZero() {
+				if startFlag {
 					endTime = time.Since(startTime)
-					fmt.Printf("%v\n", endTime.Seconds())
-					if endTime > time.Second*2 { // 2초가 지났을 때
-						startTime = time.Time{} // 초기화
-						startFlag = false
-						fmt.Println("감지 끝")
+					//fmt.Printf("%s %s\n", endTime, time.Second*5)
+					startFlag = false
+
+					if endTime > time.Second*3 { // 움직임 분기 (움직임 감지 3초 유지)
+						// Process
 					}
 				}
 			}
-			buf, _ := gocv.IMEncode(".jpg", motion)
-			ViewChannel <- buf
+			//buf, _ := gocv.IMEncode(".jpg", motion)
+			//ViewChannel <- buf
 			//server.BroadcastToAll("frame", buf)
 		}
 	}()
@@ -281,12 +281,14 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		}
 
 		gocv.Resize(img, &img, encodingSize, 0, 0, 0)
-
-		roi := DetectArea(img, DPI)
-
 		buf, _ := gocv.IMEncode(".jpg", img)
 		ViewChannel <- buf
-		FrameChannel <- roi
+
+		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우
+			roi := DetectArea(img, DPI)
+			FrameChannel <- roi
+		}
+
 		gocv.WaitKey(1)
 	}
 }
