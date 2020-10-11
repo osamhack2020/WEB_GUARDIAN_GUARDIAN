@@ -221,8 +221,14 @@ export function RuningFooter() {
           SetWorkState(StateTag.processing); // 임시 상태 테스트
           setTimeout(() => {
             SetWorkState(StateTag.success);
-            console.log(ConvexHullPos);
-            axios.post(`${BACKEND_URL}/SetDetectPoint`,{DetectPoint:ConvexHullPos}).then(function (response) {
+            console.log({
+              ViewSize:{X:ScreenX,Y:ScreenY},
+              DetectPoint:ConvexHullPos
+            });
+            axios.post(`${BACKEND_URL}/SetDetectPoint`,{
+              ViewSize:{X:ScreenX,Y:ScreenY},
+              DetectPoint:ConvexHullPos
+            }).then(function (response) {
               console.log(response);
             });
           }, 1000);
