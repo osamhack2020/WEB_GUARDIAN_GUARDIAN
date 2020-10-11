@@ -1,6 +1,22 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Button, Spin, Row, Col, Dropdown, Menu, Slider } from "antd";
-import { LoadingOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Spin,
+  Row,
+  Col,
+  Dropdown,
+  Menu,
+  Slider,
+  Layout,
+  Tag,
+} from "antd";
+import {
+  LoadingOutlined,
+  SyncOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ClockCircleOutlined
+} from "@ant-design/icons";
 import { IClickPos } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
@@ -159,17 +175,67 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
   );
 }
 
+const StateTag = {
+  success: (
+    <Tag icon={<CheckCircleOutlined />} color="success">
+      success
+    </Tag>
+  ),
+  processing: (
+    <Tag icon={<SyncOutlined spin />} color="processing">
+      processing
+    </Tag>
+  ),
+  fail: (
+    <Tag icon={<CloseCircleOutlined />} color="error">
+      error
+    </Tag>
+  ),
+  wait:(
+    <Tag icon={<ClockCircleOutlined />} color="default">
+      wait
+    </Tag>
+  )
+};
+
+export function RuningFooter() {
+  const [WorkState,SetWorkState] = useState(StateTag.wait);
+  return (
+    <Layout.Footer
+      style={{ background: "white", borderTop: "1px solid rgb(206,206,206)" }}
+    >
+      <Button type="primary" onClick={()=>{
+        SetWorkState(StateTag.processing)
+        setTimeout(()=>{
+          SetWorkState(StateTag.success)
+        },1000);
+      }}>감지시작</Button>
+      <Button type="primary" disabled>
+        감지중지
+      </Button>
+      {WorkState}
+    </Layout.Footer>
+  );
+}
 export default function Setting() {
   return (
-    <Row>
-      <Col sm={ScreenY} style={{ position: "relative", background: "#C8D2D7" }}>
-        <DetectionAreaBox DefaultCameraIdx={0} />
-      </Col>
-      <Col flex={1}>
-        <span>
-          설정 <Slider defaultValue={10} tooltipVisible />
-        </span>
-      </Col>
-    </Row>
+    <>
+      <Row>
+        <Col
+          sm={ScreenY}
+          style={{ position: "relative", background: "#C8D2D7" }}
+        >
+          <DetectionAreaBox DefaultCameraIdx={0} />
+        </Col>
+        <Col flex={1}>
+          <span>
+            설정 <Slider defaultValue={10} tooltipVisible />
+          </span>
+          <Button type="primary" style={{ width: "100%" }}>
+            감지 시작
+          </Button>
+        </Col>
+      </Row>
+    </>
   );
 }
