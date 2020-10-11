@@ -1,21 +1,13 @@
-# GUARDIAN - CCTV감지체계 - 웹서버
+# GUARDIAN - CCTV감지체계
 
 # Logo
-<<<<<<< HEAD
 ![Logo](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/logo.png)
-=======
-![Logo](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/midend/logo.png)
->>>>>>> origin/midend
 
 ## 팀소개 및 프로잭트 설명 동영상
 [추가 예정]
 
 ## 기능 설계
-<<<<<<< HEAD
 **[Oven](https://ovenapp.io/project/yx0NjBwiaWnct4suJmMu9fvgJmmRNLwe#sy1Vs)**  
-=======
-[추가 예정]
->>>>>>> origin/midend
 
 ## 컴퓨터 구성 / 필수 조건 안내 (Prerequisites)
 * ECMAScript 6 지원 브라우저 사용
@@ -23,7 +15,6 @@
 
 ## 기술 스택 (Technique Used)
 ### Server(back-end)
-<<<<<<< HEAD
  - golang 1.15.2
  - GoCV (OpenCV Binding) 
  - mongoDB
@@ -34,10 +25,6 @@
  - React.js  
  - Antd UI Framework  
  - Socket.io
-=======
- - NodeJS
- 	- Express
->>>>>>> origin/midend
 
 ### Infra
  - Docker
@@ -56,14 +43,11 @@ $ git clone https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN
 - 노드모듈 설치
 ```bash
 $ yarn add global nodemon
-<<<<<<< HEAD
 $ yarn install
 ```
 - 실행(프론트엔드)
 ```bash
 $ yarn start
-=======
->>>>>>> origin/midend
 ```
 
 ## 프로젝트 사용법 (Getting Started)
