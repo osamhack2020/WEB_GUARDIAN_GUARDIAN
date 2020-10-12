@@ -23,6 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 /assets/yolov4.weights
 yarn.lock
+src/react-app-env.d.ts
+
 # backend npm modules, session
 backend/node_modules
 backend/sessions
