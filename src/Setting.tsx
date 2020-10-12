@@ -73,14 +73,14 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     [CameraIdx, ClickPos]
   ); // 클릭했을 때, 카메라 화면 바뀌었을 때
 
-  const onClearBtn = useCallback(() => {
+  const onClearBtn = () => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     let ctx: CanvasContext = canvas?.getContext("2d");
     ctx?.clearRect(0, 0, ScreenX, ScreenY);
     let Pos = ClickPos.slice();
     Pos[CameraIdx] = [];
     SetPos(Pos);
-  }, [ClickPos]); // 클릭 했을 때
+  }; 
 
   const menu = useCallback(
     // 화면 우클릭 카메라 설정
@@ -99,7 +99,7 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     canvas?.addEventListener("click", onCanvasClick);
     if (ClickPos[CameraIdx].length > 0) {
-      dispatch(SettinActions.SetConvexHullPos(CameraIdx, ClickPos[CameraIdx]));
+      dispatch(SettinActions.SetConvexHullPos(CameraIdx, ConvexHull_2D(ClickPos[CameraIdx].slice())));
     } else if (ClickPos[CameraIdx].length === 0) {
       // 배열에 간선이 0개 이면 이전에 그려진 그림 초기화
       let ctx: CanvasContext = canvas?.getContext("2d");
@@ -257,9 +257,7 @@ export default function Setting() {
           <span>
             설정 <Slider defaultValue={10} tooltipVisible />
           </span>
-          <Button type="primary" style={{ width: "100%" }}>
-            감지 시작
-          </Button>
+
         </Col>
       </Row>
     </>
