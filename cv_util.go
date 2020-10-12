@@ -231,6 +231,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		var startTime time.Time
 		var endTime time.Duration
 		var startFlag bool
+		var endFlag bool
 		for img := range FrameChannel {
 			//gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
 			_, motionCnt := MotionDetect(img, mog2)
@@ -247,7 +248,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					ingTime := time.Since(startTime)
 					var i time.Duration = 1
 					for ; i < 30; i++ {
-						if ingTime > time.Second*i && ingTime < time.Second*i+(time.Millisecond*10) { // 움직임 감지되고 1초 뒤
+						if ingTime > time.Second*i && ingTime < time.Second*i+(time.Millisecond*100) { // 움직임 감지되고 1초 뒤
 							// Process
 							fmt.Printf("감지 %d초 됨.\n", i)
 
@@ -256,16 +257,15 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				}
 
 			} else { // 움직임 감지없으면
-
 				endTime = time.Since(startTime)
-
 				if startFlag {
-
-					if endTime > time.Second*3 { // 움직임 분기 (움직임 감지 3초 유지)
-						// Process
-						fmt.Printf("감지끝 %d초 이상 유지됨.\n", 3)
-					}
 					startFlag = false
+					endFlag = true
+				}
+				if endFlag && endTime > time.Second*3 { // 움직임 분기 (움직임 감지 끝나고 3초 유지)
+					// Process
+					fmt.Printf("감지끝 %d초 이상 유지됨.\n", 3)
+					endFlag = false
 				}
 
 			}
