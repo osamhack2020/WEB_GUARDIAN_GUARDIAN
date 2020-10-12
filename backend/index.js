@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/html/main.html');
 });
 
-// 대시보드페이지
+/*/ 대시보드페이지
 app.get('/dashboard', (req, res) => {
 	res.sendFile(__dirname + '/html/dashboard.html');
 });
@@ -54,7 +54,7 @@ app.get('/api/signup', (req, res) => {
 // 로그인
 app.get('/api/signin', (req, res) => {
 	return res.json()
-});
+});*/
 
 // 연결시작
 io.on('connection', function(socket) {
