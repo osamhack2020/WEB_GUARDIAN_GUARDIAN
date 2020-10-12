@@ -1,53 +1,47 @@
 import { createStore, combineReducers } from "redux";
-import { createActionCreators, createReducerFunction, ImmerReducer,composeReducers } from "immer-reducer";
-import {CameraRTSPUrl} from "./Util";
-import {IClickPos} from "./Interface";
-export interface IMainState
-{
-    ViewURL : string[]
+import {
+  createActionCreators,
+  createReducerFunction,
+  ImmerReducer,
+  composeReducers,
+} from "immer-reducer";
+import { CameraRTSPUrl } from "./Util";
+import { IClickPos, IDetectData } from "./Interface";
+export interface IMainState {
+  ViewURL: string[];
+  DetectLog: IDetectData[];
 }
 
-export interface ISettingState
-{
-    UseCamera : string[]
-    ConvexHullPos : IClickPos[][]
+export interface ISettingState {
+  UseCamera: string[];
+  ConvexHullPos: IClickPos[][];
 }
 
 // State Init
-const MainState: (IMainState) = {
-    ViewURL: CameraRTSPUrl
-}
+const MainState: IMainState = {
+  ViewURL: CameraRTSPUrl,
+  DetectLog: [],
+};
+
 // immer-Reducer
-class MainReducer extends ImmerReducer<IMainState>{
-    addComponent() { // ${item} in ${target} , index is start point
-            this.draftState.ViewURL.push("http://")
-    }
-
-    // removeArea(index : number) {
-    //     let draft = this.draftState['Area'] as Array<JSX.Element | null>;
-    //     draft.splice(index,1);
-    // }
-
-    // makeArea() {
-    //     let draft = this.draftState['Area'] as Array<JSX.Element | null>;
-    //     draft.push(null);
-    // }
-
-    // addTextArea(content : string)
-    // {
-    //     this.draftState['TextArea'] = content;
-    // }
+class MainReducer extends ImmerReducer<IMainState> {
+  addDetectLog(thumbnail: string, content: string, time: string) {
+    this.draftState.DetectLog.push({
+      thumbnail: `data:image/jpeg;base64,${thumbnail}`,
+      content: content + " 식별",
+      time: time,
+    });
+  }
 }
 
-const SettingState: (ISettingState) = {
-    UseCamera: [],
-    ConvexHullPos: Array.from(Array(6), () => new Array())
-}
-class SettingReducer extends ImmerReducer<ISettingState>{
-   SetConvexHullPos(cameraIdx : number, Pos : IClickPos[])
-   {
-       this.draftState.ConvexHullPos[cameraIdx] = Pos;
-   }
+const SettingState: ISettingState = {
+  UseCamera: [],
+  ConvexHullPos: Array.from(Array(6), () => new Array()),
+};
+class SettingReducer extends ImmerReducer<ISettingState> {
+  SetConvexHullPos(cameraIdx: number, Pos: IClickPos[]) {
+    this.draftState.ConvexHullPos[cameraIdx] = Pos;
+  }
 }
 
 // Export (Store) and (Function for Dispatch)
@@ -56,5 +50,5 @@ export const SettinActions = createActionCreators(SettingReducer);
 
 const mainReducer = createReducerFunction(MainReducer, MainState);
 const settingReducer = createReducerFunction(SettingReducer, SettingState);
- const rootReducer = combineReducers({mainReducer,settingReducer});
+const rootReducer = combineReducers({ mainReducer, settingReducer });
 export const store = createStore(rootReducer);
