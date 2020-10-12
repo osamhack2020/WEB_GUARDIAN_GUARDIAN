@@ -2,25 +2,22 @@
 <html lang="ko">
 	<head>
 		<meta charset="utf-8">
-		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 		<title>CCTV감시</title>
+		<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+		<link rel="stylesheet" type="text/css" href="/css/main.css">
 		<script src="/cdn/jquery/3.5.1/jquery.min.js"></script>
 		<script src="/cdn/socket.io/2.3.1/socket.io.min.js"/></script>
 		<script src="/js/main.js"></script>
-		<style>
-			.img { width: 100%; height: 50px; background-color: lightgray; text-align: center; }
-			.log { float: right; width: 20%; height: 500px; background-color: #80DFFE; text-align: left; }
-			.menu { float: left; width: 20%; height: 500px; background-color: black; text-align: center; color: white; }
-			.log > span { background-color: rgba(0, 0, 0, .6); border: 1px solid black; color: white; display: block; }
-		</style>
 	</head>
 	<body>
 		<div class="img">
 			<img src="/img/osam.png" alt="https://osam.kr"/>
 		</div>
 		<div class="log">
-			<span>테스트1</span>
-			<span>테스트2</span>
+			<span>
+				<img alt="404 error" src="/img/osam.png">
+				main.html예제
+			</span>
 		</div>
 		<div class="menu">
 			<p>메뉴1</p>
@@ -30,7 +27,8 @@
 		</div>
 		<div>
 			<p>테스트메세지 전송하기!</p>
-			<input type="text" class="msg">
+			썸네일링크: <input type="text" class="msg_thumbnail"><br>
+			내용(필수): <input type="text" class="msg_text">
 			<input type="button" class="send_msg" value="전송">
 		</div>
 	</body>
