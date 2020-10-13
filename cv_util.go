@@ -167,19 +167,11 @@ func MotionDetect(src gocv.Mat, imgDelta gocv.Mat, imgThresh gocv.Mat, mog2 gocv
 	return contours_cnt
 }
 
-func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
-
-	imgClone := img.Clone()
-	if len(info.DetectPoint) == 0 {
-		return imgClone
-	}
-	mask := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
-
-	result := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
+func DetectArea(img gocv.Mat, mask gocv.Mat, result *gocv.Mat, info DetectPointInfo) gocv.Mat {
 	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
-	imgClone.CopyToWithMask(&result, mask)
-	return result
-	boundingRect := gocv.BoundingRect(gocv.FindContours(mask.Clone(), gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
+	img.CopyToWithMask(result, mask)
+	//	return result
+	boundingRect := gocv.BoundingRect(gocv.FindContours(mask, gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
 	return result.Region(boundingRect)
 }
 
@@ -237,6 +229,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 		imgThresh := gocv.NewMat()
 		defer imgThresh.Close()
+
 		for img := range FrameChannel {
 			motionCnt := MotionDetect(img, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
@@ -262,7 +255,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				}
 			}
 		}
-		
+
 	}()
 	var DPI DetectPointInfo
 	go func() { // Set DetectPointInfo
@@ -272,6 +265,14 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			break
 		}
 	}()
+
+	mask := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC1)
+	defer mask.Close()
+	result := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC1)
+	defer result.Close()
+
+	var resultROI gocv.Mat
+	defer resultROI.Close()
 	for {
 		if ok := cap.Read(&img); !ok {
 			log.Println("RTSP Close")
@@ -288,12 +289,12 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 		ViewChannel <- buf
 
-		go func(frame gocv.Mat) {
-			//if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
-			//roi := DetectArea(frame, DPI)
-			FrameChannel <- frame
-			//}
-		}(img)
+		//go func(frame gocv.Mat) {
+		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
+			resultROI = DetectArea(img, mask, &result, DPI)
+			FrameChannel <- resultROI
+		}
+		//}(img)
 		gocv.WaitKey(1)
 	}
 }
