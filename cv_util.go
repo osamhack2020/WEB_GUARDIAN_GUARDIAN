@@ -262,7 +262,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				}
 			}
 		}
-		
+
 	}()
 	var DPI DetectPointInfo
 	go func() { // Set DetectPointInfo
@@ -288,12 +288,12 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 		ViewChannel <- buf
 
-		go func(frame gocv.Mat) {
-			//if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
+		//go func(frame gocv.Mat) {
+		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
 			//roi := DetectArea(frame, DPI)
-			FrameChannel <- frame
-			//}
-		}(img)
+			FrameChannel <- img
+		}
+		//}(img)
 		gocv.WaitKey(1)
 	}
 }
