@@ -126,44 +126,45 @@ func Detect(net *gocv.Net, src gocv.Mat, scoreThreshold float32, nmsThreshold fl
 	return drawRect(img, boxes, classes, classIds, indices)
 }
 
-func MotionDetect(src gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) (gocv.Mat, int) {
-	img := src.Clone()
+func MotionDetect(src gocv.Mat, imgDelta gocv.Mat, imgThresh gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) int {
+	if src.Empty() {
+		return -1
+	}
 
-	imgDelta := gocv.NewMat()
-	defer imgDelta.Close()
+	//img := src.Clone()
 
 	// first phase of cleaning up image, obtain foreground only
-	mog2.Apply(img, &imgDelta)
+	mog2.Apply(src, &imgDelta)
 
 	// remaining cleanup of the image to use for finding contours.
 	// first use threshold
-	gocv.Threshold(imgDelta, &imgDelta, 25, 255, gocv.ThresholdBinary)
+	gocv.Threshold(imgDelta, &imgThresh, 25, 255, gocv.ThresholdBinary)
 
 	// then dilate
 	kernel := gocv.GetStructuringElement(gocv.MorphRect, image.Pt(3, 3))
 	defer kernel.Close()
-	gocv.Dilate(imgDelta, &imgDelta, kernel)
+	gocv.Dilate(imgThresh, &imgThresh, kernel)
 
 	// now find contours
-	contours := gocv.FindContours(imgDelta, gocv.RetrievalExternal, gocv.ChainApproxSimple)
+	contours := gocv.FindContours(imgThresh, gocv.RetrievalExternal, gocv.ChainApproxSimple)
 
 	contours_cnt := 0
-	for i, c := range contours {
+	for _, c := range contours {
 		area := gocv.ContourArea(c)
 		if area < 500 && area < 5000 {
 			continue
 		}
 
-		gocv.DrawContours(&img, contours, i, color.RGBA{255, 0, 255, 0}, 2)
+		//gocv.DrawContours(&img, contours, i, color.RGBA{255, 0, 255, 0}, 2)
 
-		rect := gocv.BoundingRect(c)
-		gocv.Rectangle(&img, rect, color.RGBA{0, 0, 255, 0}, 2)
+		//rect := gocv.BoundingRect(c)
+		//	gocv.Rectangle(&img, rect, color.RGBA{0, 0, 255, 0}, 2)
 		contours_cnt++
 	}
 	if contours_cnt > 10 {
 		contours_cnt = -1
 	}
-	return img, contours_cnt
+	return contours_cnt
 }
 
 func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
@@ -173,14 +174,11 @@ func DetectArea(img gocv.Mat, info DetectPointInfo) gocv.Mat {
 		return imgClone
 	}
 	mask := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
-	defer mask.Close()
+
 	result := gocv.NewMatWithSize(imgClone.Rows(), imgClone.Cols(), gocv.MatTypeCV8UC1)
-	defer result.Close()
-
-	//TransPoint := TransPos(info, 0, image.Point{imgClone.Cols(), imgClone.Rows()})
-
 	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
 	imgClone.CopyToWithMask(&result, mask)
+	return result
 	boundingRect := gocv.BoundingRect(gocv.FindContours(mask.Clone(), gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
 	return result.Region(boundingRect)
 }
@@ -232,42 +230,46 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	}()
 	go func() { // Motion Detect Thread
 		var startTime time.Time
-		var endTime time.Duration
 		var startFlag bool
+
+		imgDelta := gocv.NewMat()
+		defer imgDelta.Close()
+
+		imgThresh := gocv.NewMat()
+		defer imgThresh.Close()
 		for img := range FrameChannel {
-			//gocv.Resize(img, &img, image.Point{1280, 720}, 0, 0, 1)
-			_, motionCnt := MotionDetect(img, mog2)
+			motionCnt := MotionDetect(img, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 				if !startFlag { // 움직임 감지 시작 시간 대입
 					startFlag = true
-					fmt.Println("감지 시작")
 					startTime = time.Now()
-
-					go func() { // Yolo Start
-						YoloChannel <- img
-					}()
-
+					// go func() {
+					// 	YoloChannel <- img
+					// }()
+				} else {
+					ingTime := time.Since(startTime)
+					var i time.Duration = 1
+					for ; i < 30; i++ {
+						if ingTime > time.Second*i && ingTime < time.Second*i+(time.Millisecond*100) { // 움직임 감지되고 1초 뒤
+							// Process
+							fmt.Printf("감지 %d초 됨.\n", i)
+						}
+					}
 				}
 			} else { // 움직임 감지없으면
 				if startFlag {
-					endTime = time.Since(startTime)
-					//fmt.Printf("%s %s\n", endTime, time.Second*5)
 					startFlag = false
-
-					if endTime > time.Second*3 { // 움직임 분기 (움직임 감지 3초 유지)
-						// Process
-					}
 				}
 			}
-			//buf, _ := gocv.IMEncode(".jpg", motion)
-			//ViewChannel <- buf
-			//server.BroadcastToAll("frame", buf)
 		}
+		
 	}()
 	var DPI DetectPointInfo
 	go func() { // Set DetectPointInfo
 		for D := range DetectPointChannel {
 			DPI = DetectPointInfo{D.ViewSize, TransPos(D, 0, encodingSize)}
+			fmt.Printf("DPI %v\n", DPI)
+			break
 		}
 	}()
 	for {
@@ -277,18 +279,21 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			log.Println("RTSP ReStart")
 		}
 		if img.Empty() {
+			log.Println("Frame Close")
 			continue
 		}
 
 		gocv.Resize(img, &img, encodingSize, 0, 0, 0)
 		buf, _ := gocv.IMEncode(".jpg", img)
+
 		ViewChannel <- buf
 
-		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우
-			roi := DetectArea(img, DPI)
-			FrameChannel <- roi
-		}
-
+		go func(frame gocv.Mat) {
+			//if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
+			//roi := DetectArea(frame, DPI)
+			FrameChannel <- frame
+			//}
+		}(img)
 		gocv.WaitKey(1)
 	}
 }
