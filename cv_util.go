@@ -169,7 +169,11 @@ func MotionDetect(src gocv.Mat, imgDelta gocv.Mat, imgThresh gocv.Mat, mog2 gocv
 
 func DetectArea(img gocv.Mat, mask gocv.Mat, result *gocv.Mat, info DetectPointInfo) gocv.Mat {
 	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
+	if img.Size()[0] != mask.Size()[0] || img.Size()[1] != mask.Size()[1] {
+		return img
+	}
 	img.CopyToWithMask(result, mask)
+
 	//	return result
 	boundingRect := gocv.BoundingRect(gocv.FindContours(mask, gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
 	return result.Region(boundingRect)
@@ -208,6 +212,15 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		Time      string `json:"time"`
 	}
 
+	var DPI DetectPointInfo
+	go func() { // Set DetectPointInfo
+		for D := range DetectPointChannel {
+			DPI = DetectPointInfo{D.ViewSize, TransPos(D, 0, encodingSize)}
+			fmt.Printf("DPI %v\n", DPI)
+			break
+		}
+	}()
+
 	go func() { // Yolo Thread
 		for {
 			q_img := <-YoloChannel
@@ -230,49 +243,43 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		imgThresh := gocv.NewMat()
 		defer imgThresh.Close()
 
+		mask := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC1)
+		defer mask.Close()
+		result := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC1)
+		defer result.Close()
+
+		var resultROI gocv.Mat
+		defer resultROI.Close()
+
+		timeSeq := []bool{false}
+
 		for img := range FrameChannel {
-			motionCnt := MotionDetect(img, imgDelta, imgThresh, mog2)
+			resultROI = DetectArea(img, mask, &result, DPI)
+			motionCnt := MotionDetect(resultROI, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 				if !startFlag { // 움직임 감지 시작 시간 대입
 					startFlag = true
 					startTime = time.Now()
-					// go func() {
-					// 	YoloChannel <- img
-					// }()
+
 				} else {
-					ingTime := time.Since(startTime)
-					var i time.Duration = 1
-					for ; i < 30; i++ {
-						if ingTime > time.Second*i && ingTime < time.Second*i+(time.Millisecond*100) { // 움직임 감지되고 1초 뒤
-							// Process
-							fmt.Printf("감지 %d초 됨.\n", i)
-						}
+					ingTime := int64(time.Since(startTime) / time.Second)
+					if ingTime > 0 && !timeSeq[ingTime-1] {
+						timeSeq[ingTime-1] = true
+						timeSeq = append(timeSeq, false)
+						fmt.Printf("%d %d초\n", ingTime, len(timeSeq))
 					}
+
 				}
 			} else { // 움직임 감지없으면
 				if startFlag {
 					startFlag = false
+					timeSeq = []bool{false}
 				}
 			}
 		}
 
 	}()
-	var DPI DetectPointInfo
-	go func() { // Set DetectPointInfo
-		for D := range DetectPointChannel {
-			DPI = DetectPointInfo{D.ViewSize, TransPos(D, 0, encodingSize)}
-			fmt.Printf("DPI %v\n", DPI)
-			break
-		}
-	}()
 
-	mask := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC1)
-	defer mask.Close()
-	result := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC1)
-	defer result.Close()
-
-	var resultROI gocv.Mat
-	defer resultROI.Close()
 	for {
 		if ok := cap.Read(&img); !ok {
 			log.Println("RTSP Close")
@@ -291,8 +298,8 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 		//go func(frame gocv.Mat) {
 		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
-			resultROI = DetectArea(img, mask, &result, DPI)
-			FrameChannel <- resultROI
+
+			FrameChannel <- img
 		}
 		//}(img)
 		gocv.WaitKey(1)
