@@ -84,17 +84,17 @@ func ReadCOCO() []string {
 }
 
 // drawRect : Detect Class to Draw Rect
-func drawRect(img gocv.Mat, boxes []image.Rectangle, classes []string, classIds []int, indices []int) (gocv.Mat, []string) {
+func drawRect(img *gocv.Mat, boxes []image.Rectangle, classes []string, classIds []int, indices []int) []string {
 	var detectClass []string
 	for _, idx := range indices {
 		if idx == 0 {
 			continue
 		}
-		gocv.Rectangle(&img, image.Rect(boxes[idx].Max.X, boxes[idx].Max.Y, boxes[idx].Max.X+boxes[idx].Min.X, boxes[idx].Max.Y+boxes[idx].Min.Y), color.RGBA{255, 0, 0, 0}, 2)
-		gocv.PutText(&img, classes[classIds[idx]], image.Point{boxes[idx].Max.X, boxes[idx].Max.Y + 30}, gocv.FontHersheyPlain, 5, color.RGBA{0, 0, 255, 0}, 3)
+		gocv.Rectangle(img, image.Rect(boxes[idx].Max.X, boxes[idx].Max.Y, boxes[idx].Max.X+boxes[idx].Min.X, boxes[idx].Max.Y+boxes[idx].Min.Y), color.RGBA{255, 0, 0, 0}, 2)
+		gocv.PutText(img, classes[classIds[idx]], image.Point{boxes[idx].Max.X, boxes[idx].Max.Y + 30}, gocv.FontHersheyPlain, 5, color.RGBA{0, 0, 255, 0}, 3)
 		detectClass = append(detectClass, classes[classIds[idx]])
 	}
-	return img, detectClass
+	return detectClass
 }
 
 // TransPos : Frontend ViewSize => CV Mat ViewSize
@@ -109,20 +109,21 @@ func TransPos(FrontInfo DetectPointInfo, CameraIdx int, CvViewSize image.Point) 
 }
 
 // Detect : Run YOLOv4 Process
-func Detect(net *gocv.Net, src gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string) (gocv.Mat, []string) {
-	src.ConvertTo(&src, gocv.MatTypeCV32F)
-	blob := gocv.BlobFromImage(src, 1/255.0, image.Pt(416, 416), gocv.NewScalar(0, 0, 0, 0), true, false)
+func YoloDetect(net *gocv.Net, src gocv.Mat, ori *gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string) []string {
+	ConvMat := src.Clone()
+	src.ConvertTo(&ConvMat, gocv.MatTypeCV32F)
+	blob := gocv.BlobFromImage(ConvMat, 1/255.0, image.Pt(416, 416), gocv.NewScalar(0, 0, 0, 0), true, false)
 	net.SetInput(blob, "")
 	probs := net.ForwardLayers(OutputNames)
-	boxes, confidences, classIds := PostProcess(src, &probs)
+	boxes, confidences, classIds := PostProcess(ConvMat, &probs)
 
 	indices := make([]int, 100)
 	if len(boxes) == 0 { // No Classes
-		return src, []string{}
+		return []string{}
 	}
 	gocv.NMSBoxes(boxes, confidences, scoreThreshold, nmsThreshold, indices)
 
-	return drawRect(src, boxes, classes, classIds, indices)
+	return drawRect(ori, boxes, classes, classIds, indices)
 }
 
 func MotionDetect(src gocv.Mat, imgDelta gocv.Mat, imgThresh gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) int {
@@ -159,17 +160,15 @@ func MotionDetect(src gocv.Mat, imgDelta gocv.Mat, imgThresh gocv.Mat, mog2 gocv
 	return contours_cnt
 }
 
-func DetectArea(img gocv.Mat, mask gocv.Mat, result *gocv.Mat, info DetectPointInfo) gocv.Mat {
+func DetectArea(img gocv.Mat, mask gocv.Mat, result gocv.Mat, info DetectPointInfo) gocv.Mat {
 	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
 	if img.Size()[0] != mask.Size()[0] || img.Size()[1] != mask.Size()[1] {
 		return img
 	}
 	// CopyTo Error
-	img.CopyToWithMask(result, mask)
+	img.CopyToWithMask(&result, mask)
 
-	//	return result
-	boundingRect := gocv.BoundingRect(gocv.FindContours(mask, gocv.RetrievalExternal, gocv.ChainApproxSimple)[0])
-	return result.Region(boundingRect)
+	return result
 }
 
 func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
@@ -198,8 +197,11 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	oriImg := gocv.NewMat()
 	defer oriImg.Close()
 	FrameChannel := make(chan gocv.Mat)
-
-	YoloChannel := make(chan gocv.Mat)
+	type IYoloData struct {
+		original gocv.Mat
+		roi      gocv.Mat
+	}
+	YoloChannel := make(chan IYoloData)
 	type IDetect struct {
 		Thumbnail []byte `json:"thumbnail"`
 		Content   string `json:"content"`
@@ -217,11 +219,12 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 	go func() { // Yolo Thread
 		for YoloData := range YoloChannel {
-			detectImg, detectClass := Detect(&net, YoloData, 0.45, 0.5, OutputNames, classes)
-			buf, _ := gocv.IMEncode(".jpg", detectImg)
+			NowTime := time.Now().Format("2006-01-02 15:04:05")
+			detectClass := YoloDetect(&net, YoloData.roi, &YoloData.original, 0.45, 0.5, OutputNames, classes)
+			buf, _ := gocv.IMEncode(".jpg", YoloData.original)
 			fmt.Printf("class : %v\n ", detectClass)
 			if len(detectClass) > 0 {
-				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), time.Now().Format("2006-01-02 15:04:05")})
+				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
 				Server.BroadcastToAll("detect", string(b))
 			}
 		}
@@ -247,7 +250,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		timeSeq := []bool{false}
 
 		for img := range FrameChannel {
-			resultROI = DetectArea(img, mask, &result, DPI)
+			resultROI = DetectArea(img, mask, result, DPI)
 			motionCnt := MotionDetect(resultROI, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 				if !startFlag { // 움직임 감지 시작 시간 대입
@@ -259,9 +262,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					if ingTime > 0 && !timeSeq[ingTime-1] {
 						timeSeq[ingTime-1] = true
 						timeSeq = append(timeSeq, false)
-						go func(frame gocv.Mat) {
-							YoloChannel <- frame
-						}(resultROI)
+						go func(original gocv.Mat, roi gocv.Mat) {
+							YoloChannel <- IYoloData{original.Clone(), roi.Clone()}
+						}(img, resultROI)
 						fmt.Printf("%d\n", ingTime)
 					}
 
