@@ -29,3 +29,4 @@ yarn-error.log*
 # backend npm modules, session
 backend/node_modules
 backend/sessions
+backend/config

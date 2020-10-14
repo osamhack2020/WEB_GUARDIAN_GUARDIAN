@@ -1,19 +1,18 @@
-var express = require('express');
-var session = require('express-session');
-var FileStore = require('session-file-store')(session);
-var bodyParser = require('body-parser');
-var mongoose = require('mongoose');
+const express = require('express');
+const session = require('express-session');
+const FileStore = require('session-file-store')(session);
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
-var app = express();
-var server = require('http').createServer(app);
+const app = express();
+const server = require('http').createServer(app);
+// http server를 socket.io server로 upgrade한다
+const io = require('socket.io')(server);
 
 // [CONFIGURE APP TO USE bodyParser]
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-
-// http server를 socket.io server로 upgrade한다
-var io = require('socket.io')(server);
 
 /*/ 세션 설정
 app.use(session({
@@ -27,14 +26,29 @@ app.use(session({
 // js폴더 static등록
 app.use(express.static('public'));
 
+// 몽고DB에 연결할 호스트,DB,아이디,비번 불러오기
+const dci = require('config/db_connect_info.json');
+
+// 몽구스 세팅
+let db = mongoose.connection;
+	db.on("error", console.error);
+	db.once("open", function() {
+	console.log("Connected to mongodb server");
+});
+mongoose.connect(
+	"mongodb+srv://"+dci.id+":"+dci.pw+
+	"@"+dci.host+"/"+dci.db+"?retryWrites=true&w=majority",
+	{ useUnifiedTopology: true, useNewUrlParser: true }
+);
+
 // 포트설정
-var port = 80;
+const port = 80;
 // 서버시작시 로그
 server.listen(port, () => {
 	console.log('Server listening at http://localhost:' + port);
 });
 
-//ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ세팅끝ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ//
+//ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ페이지ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ//
 
 // http://localhost 메인 페이지
 app.get('/', (req, res) => {
@@ -44,17 +58,31 @@ app.get('/', (req, res) => {
 /*/ 대시보드페이지
 app.get('/dashboard', (req, res) => {
 	res.sendFile(__dirname + '/html/dashboard.html');
+});*/
+
+// API 회원가입
+app.get('/signup', (req, res) => {
+	res.sendFile(__dirname + '/html/signup.html');
 });
+
+// API로그인
+app.get('/signin', (req, res) => {
+	res.sendFile(__dirname + '/html/signin.html');
+});
+
+//ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡAPIㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ//
 
 // 회원가입
 app.get('/api/signup', (req, res) => {
-	return res.json()
+	return res.json();
 });
 
 // 로그인
 app.get('/api/signin', (req, res) => {
-	return res.json()
-});*/
+	return res.json();
+});
+
+//ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ소켓통신ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ//
 
 // 연결시작
 io.on('connection', function(socket) {
