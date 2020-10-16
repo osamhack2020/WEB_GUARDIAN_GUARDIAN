@@ -167,11 +167,8 @@ func DetectArea(img gocv.Mat, mask gocv.Mat, result *gocv.Mat, info DetectPointI
 			fmt.Println(s)
 		}
 	}()
-	if img.Channels() == 3 && img.Type() == gocv.MatTypeCV8UC3 {
-		gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
-		fmt.Printf("%v %v %v\n", img.Channels(), img.Type(), img.Size())
-		gocv.BitwiseAnd(img, mask, result)
-	}
+	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
+	gocv.BitwiseAnd(img, mask, result)
 }
 
 func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
@@ -219,17 +216,21 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			break
 		}
 	}()
-
+	var NowTime string
+	var detectClass []string
 	go func() { // Yolo Thread
 		for YoloData := range YoloChannel {
-			NowTime := time.Now().Format("2006-01-02 15:04:05")
-			detectClass := YoloDetect(&net, YoloData.roi, &YoloData.original, 0.45, 0.5, OutputNames, classes)
-			buf, _ := gocv.IMEncode(".jpg", YoloData.original)
+			NowTime = time.Now().Format("2006-01-02 15:04:05")
+			detectClass = YoloDetect(&net, YoloData.roi, &YoloData.original, 0.45, 0.5, OutputNames, classes)
+
 			fmt.Printf("class : %v\n ", detectClass)
-			if len(detectClass) > 0 {
+			if len(detectClass) > 0 && !YoloData.original.Empty() {
+				buf, _ := gocv.IMEncode(".jpg", YoloData.original)
 				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
 				Server.BroadcastToAll("detect", string(b))
 			}
+			YoloData.original.Close()
+			YoloData.roi.Close()
 		}
 	}()
 	go func() { // Motion Detect Thread
@@ -251,7 +252,6 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		// defer resultROI.Close()
 
 		timeSeq := []bool{false}
-
 		for img := range FrameChannel {
 			DetectArea(img, mask, &resultROI, DPI)
 
@@ -282,6 +282,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					timeSeq = []bool{false}
 				}
 			}
+			img.Close()
 		}
 
 	}()
@@ -301,13 +302,10 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		buf, _ := gocv.IMEncode(".jpg", img)
 
 		ViewChannel <- buf
-
-		//go func(frame gocv.Mat) {
 		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
 
 			FrameChannel <- img.Clone()
 		}
-		//}(img)
 		gocv.WaitKey(1)
 	}
 }
