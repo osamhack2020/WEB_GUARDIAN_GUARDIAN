@@ -44,10 +44,10 @@ function Camera({  CameraURL, height}: ICamera) {
     </Spin>
   );
 }
-
+var M='0';
 export default function CameraWrapper() {
+  const ViewURL = useSelector((state : ISelect) => state.mainReducer.ViewURL);
   const dispatch = useDispatch();
-  const [M,setM] = useState<string>('0');
   const onDragStart = (e:any)=>{
     e.dataTransfer.setData("targetId",e.target.id);
   }
@@ -57,15 +57,15 @@ export default function CameraWrapper() {
   }
   const onDrop = (e:any)=>{
     let startId = e.dataTransfer.getData("targetId");
-    setM(startId);
-  }
-  useEffect(() : any => {
+    M=(startId);
     dispatch(
       MainActions.swap(M,'0')
     )
+  }
+  useEffect(() : any => {
     console.log(ViewURL);
-  }, [M]);
-  const ViewURL = useSelector((state : ISelect) => state.mainReducer.ViewURL);
+  }, [ViewURL]);
+  
   return (
     <div>
       <Row style={{ height: "63vh"}} gutter={16}>
@@ -87,13 +87,13 @@ export default function CameraWrapper() {
       </Row>
       <Row style={{ height: "30vh" }} gutter={16}>
         <Col span={8} id="3" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
-        <Camera CameraURL={ViewURL[0]} height="30vh" />
+        <Camera CameraURL={ViewURL[3]} height="30vh" />
         </Col>
         <Col span={8} id="4" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
-        <Camera CameraURL={ViewURL[2]} height="30vh" />
+        <Camera CameraURL={ViewURL[4]} height="30vh" />
         </Col>
         <Col span={8} id="5" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
-        <Camera CameraURL={ViewURL[2]} height="30vh" />
+        <Camera CameraURL={ViewURL[5]} height="30vh" />
         </Col>
       </Row>
     </div>

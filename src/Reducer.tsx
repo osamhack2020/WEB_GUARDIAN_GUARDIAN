@@ -34,7 +34,6 @@ class MainReducer extends ImmerReducer<IMainState> {
     });
   }
   swap(a:string, b:string){
-    
     var c = this.draftState.ViewURL[Number(a)];
     this.draftState.ViewURL[Number(a)] = this.draftState.ViewURL[Number(b)];
     this.draftState.ViewURL[Number(b)] = c;
