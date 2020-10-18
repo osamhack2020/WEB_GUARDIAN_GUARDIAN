@@ -9,7 +9,7 @@ import (
 	"time"
 
 	gosocketio "github.com/graarh/golang-socketio"
-	"github.com/sheerun/queue"
+	"github.com/gron1gh1/queue"
 	"gocv.io/x/gocv"
 )
 
