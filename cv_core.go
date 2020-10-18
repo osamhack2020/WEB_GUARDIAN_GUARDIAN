@@ -3,11 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"image"
 	"log"
 	"strings"
 	"time"
-	
+
 	gosocketio "github.com/graarh/golang-socketio"
+	"github.com/sheerun/queue"
 	"gocv.io/x/gocv"
 )
 
@@ -42,6 +44,13 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		roi      gocv.Mat
 	}
 	YoloChannel := make(chan IYoloData)
+
+	type ILiner struct {
+		img   gocv.Mat
+		rects []image.Rectangle
+	}
+	LinerChannel := make(chan []image.Rectangle)
+
 	type IDetect struct {
 		Thumbnail []byte `json:"thumbnail"`
 		Content   string `json:"content"`
@@ -58,12 +67,14 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	}()
 	var NowTime string
 	var detectClass []string
+	var detectBoxes []image.Rectangle
+	movingQ := queue.New()
 	go func() { // Yolo Thread
 		for YoloData := range YoloChannel {
 			NowTime = time.Now().Format("2006-01-02 15:04:05")
-			detectClass = YoloDetect(&net, YoloData.roi, &YoloData.original, 0.45, 0.5, OutputNames, classes)
+			detectClass, detectBoxes = YoloDetect(&net, YoloData.roi, &YoloData.original, 0.45, 0.5, OutputNames, classes)
 
-			fmt.Printf("class : %v\n ", detectClass)
+			fmt.Printf("class : %v %v\n ", detectClass, YoloData.original.Empty())
 			if len(detectClass) > 0 && !YoloData.original.Empty() {
 				buf, _ := gocv.IMEncode(".jpg", YoloData.original)
 				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
@@ -71,6 +82,45 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			}
 			YoloData.original.Close()
 			YoloData.roi.Close()
+		}
+	}()
+
+	Result := gocv.NewMat()
+	defer Result.Close()
+
+	mask := gocv.NewMat()
+	defer mask.Close()
+
+	go func() { // Liner Thread
+
+		Prev := gocv.NewMat()
+		defer Prev.Close()
+
+		PrevPts := gocv.NewMat()
+		defer PrevPts.Close()
+
+		criteria := gocv.NewTermCriteria(gocv.Count+gocv.EPS, 10, 0.3)
+
+		for LinerData := range LinerChannel {
+
+			for {
+				//fmt.Printf("q: %d\n", movingQ.Length())
+				if movingQ.Length() > 0 {
+					img := movingQ.Pop().(gocv.Mat)
+					if !Prev.Empty() {
+						//fmt.Printf("RC %v\n",PrevPts.Size())
+						MotionLiner(Prev, img, &PrevPts, &mask, criteria, LinerData)
+						if !mask.Empty() {
+							gocv.Add(img, mask, &Result)
+						}
+					}
+					Prev = img.Clone()
+					img.Close()
+					//LinerData.img.Close()
+				} else {
+					break
+				}
+			}
 		}
 	}()
 	go func() { // Motion Detect Thread
@@ -91,35 +141,60 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		// var resultROI gocv.Mat
 		// defer resultROI.Close()
 
-		timeSeq := []bool{false}
+		/*
+					panic: runtime error: index out of range [250] with length 32
+
+			goroutine 39 [running]:
+			github.com/sheerun/queue.(*Queue).Append(0xc000086b40, 0x79dd80, 0x7f36f84b34c0)
+			        /home/gron1gh1/go/src/github.com/sheerun/queue/queue.go:97 +0x3b0
+			main.DetectStart.func4(0xc0000b6540, 0xc00014a1e0, 0xc0000b4138, 0xc000086b40, 0xc0000b65a0, 0xc0000a6d20, 0xc0000b6600, 0xc0000b4150, 0xc0000a6d00, 0xc000148130, ...)
+			        /home/gron1gh1/code-server-gocv/data/code-server/config/workspace/WEB_BACK/cv_core.go:165 +0x3ae
+		*/
+		timeSeq := false
 		for img := range FrameChannel {
 			DetectArea(img, mask, &resultROI, DPI)
 
 			motionCnt := MotionDetect(resultROI, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
+
 				if !startFlag { // 움직임 감지 시작 시간 대입
 					startFlag = true
 					startTime = time.Now()
-
 				} else {
-					ingTime := int64(time.Since(startTime) / time.Second)
-					if ingTime > 0 && !timeSeq[ingTime-1] {
-						timeSeq[ingTime-1] = true
-						timeSeq = append(timeSeq, false)
-						if ingTime == 1 {
+					ingTime := float32(time.Since(startTime) / time.Second)
+					if ingTime > 0 {
 
+						if !timeSeq && ingTime > 2.0 {
+							fmt.Println("움직임 감지 2초")
+							timeSeq = true
+							movingQ.Clean()
+							//	fmt.Printf("moving Q: %d\n", movingQ.Length())
 							go func(original gocv.Mat, roi gocv.Mat) {
-								YoloChannel <- IYoloData{original.Clone(), roi.Clone()}
-							}(img, resultROI)
+								YoloChannel <- IYoloData{original, roi}
+							}(img.Clone(), resultROI.Clone())
+						} else if timeSeq && ingTime > 2.0 {
+							//fmt.Printf("moving Q: %d\n", movingQ.Length())
+							movingQ.Append(img.Clone()) // 나중에 mutex
+							if len(detectBoxes) > 0 {
+								LinerChannel <- detectBoxes
+							}
 						}
-						fmt.Printf("%d\n", ingTime)
 					}
 
 				}
 			} else { // 움직임 감지없으면
 				if startFlag {
 					startFlag = false
-					timeSeq = []bool{false}
+					if timeSeq {
+						timeSeq = false
+						fmt.Println("움직임 감지 끝")
+
+						if !Result.Empty() {
+							buf, _ := gocv.IMEncode(".jpg", Result)
+							b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
+							Server.BroadcastToAll("detect", string(b))
+						}
+					}
 				}
 			}
 			img.Close()
