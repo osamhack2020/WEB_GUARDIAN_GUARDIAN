@@ -49,8 +49,8 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		img   gocv.Mat
 		rects []image.Rectangle
 	}
-	LinerChannel := make(chan []image.Rectangle)
-
+	YoloDone := make(chan []image.Rectangle)
+	MotionDone := make(chan bool)
 	type IDetect struct {
 		Thumbnail []byte `json:"thumbnail"`
 		Content   string `json:"content"`
@@ -79,7 +79,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				buf, _ := gocv.IMEncode(".jpg", YoloData.original)
 				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
 				Server.BroadcastToAll("detect", string(b))
+
 			}
+			YoloDone <- detectBoxes
 			YoloData.original.Close()
 			YoloData.roi.Close()
 		}
@@ -101,25 +103,68 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 		criteria := gocv.NewTermCriteria(gocv.Count+gocv.EPS, 10, 0.3)
 
-		for LinerData := range LinerChannel {
+		ResultMotionLine := gocv.NewMat()
+		defer ResultMotionLine.Close()
 
-			for {
-				//fmt.Printf("q: %d\n", movingQ.Length())
-				if movingQ.Length() > 0 {
-					img := movingQ.Pop().(gocv.Mat)
-					if !Prev.Empty() {
-						//fmt.Printf("RC %v\n",PrevPts.Size())
-						MotionLiner(Prev, img, &PrevPts, &mask, criteria, LinerData)
-						if !mask.Empty() {
-							gocv.Add(img, mask, &Result)
-						}
-					}
-					Prev = img.Clone()
-					img.Close()
-					//LinerData.img.Close()
-				} else {
-					break
+		for {
+			DoneCheck := []bool{false, false}
+			LinerData := []image.Rectangle{}
+
+			select {
+
+			case _LinerData := <-YoloDone: // YOLO 인식 먼저 끝나면 움직임 감지 끝 기다리기 (움직임 감지는 오래걸림)
+				LinerData = _LinerData
+				DoneCheck[0] = true
+				fmt.Println("YOLO Done.")
+				<-MotionDone
+				DoneCheck[1] = true
+				fmt.Println("Motion Done.")
+			case <-MotionDone: // 움직임 감지 먼저 끝나면 YOLO 인식 기다리기 (YOLO 인식은 2~3초 걸림)
+				DoneCheck[1] = true
+				fmt.Println("Motion Done.")
+				select {
+				case _LinerData := <-YoloDone:
+					LinerData = _LinerData
+					DoneCheck[0] = true
+					fmt.Println("YOLO Done.")
+				case <-time.After(time.Second * 2):
+					DoneCheck[0] = false
+					fmt.Println("Time out.")
 				}
+
+			}
+
+			if !DoneCheck[0] || !DoneCheck[1] {
+				fmt.Println("Done Fail.")
+				continue
+			}
+			//	LinerData := <-YoloDone
+
+			//<-MotionDone
+
+			mask = gocv.NewMat()
+
+			qSize := movingQ.Length()
+			fmt.Printf("%d\n", qSize)
+			for i := 0; i < qSize; i++ {
+				//fmt.Printf("q: %d\n", movingQ.Length())
+				img := movingQ.Pop().(gocv.Mat)
+				if !Prev.Empty() {
+					//fmt.Printf("RC %v\n",PrevPts.Size())
+					MotionLiner(Prev, img, &PrevPts, &mask, criteria, LinerData)
+					if !mask.Empty() {
+						gocv.Add(img, mask, &ResultMotionLine)
+					}
+				}
+				Prev = img.Clone()
+				img.Close()
+				//LinerData.img.Close()
+			}
+			fmt.Printf("qSize : %d\tEmp : %v\n", movingQ.Length(), ResultMotionLine.Empty())
+			if !ResultMotionLine.Empty() {
+				buf, _ := gocv.IMEncode(".jpg", ResultMotionLine)
+				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
+				Server.BroadcastToAll("detect", string(b))
 			}
 		}
 	}()
@@ -175,9 +220,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 						} else if timeSeq && ingTime > 2.0 {
 							//fmt.Printf("moving Q: %d\n", movingQ.Length())
 							movingQ.Append(img.Clone()) // 나중에 mutex
-							if len(detectBoxes) > 0 {
-								LinerChannel <- detectBoxes
-							}
+
 						}
 					}
 
@@ -188,12 +231,8 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					if timeSeq {
 						timeSeq = false
 						fmt.Println("움직임 감지 끝")
+						MotionDone <- true
 
-						if !Result.Empty() {
-							buf, _ := gocv.IMEncode(".jpg", Result)
-							b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-							Server.BroadcastToAll("detect", string(b))
-						}
 					}
 				}
 			}
