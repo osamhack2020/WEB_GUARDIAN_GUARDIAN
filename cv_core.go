@@ -106,13 +106,16 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		ResultMotionLine := gocv.NewMat()
 		defer ResultMotionLine.Close()
 
+		mask := gocv.NewMat()
+		defer mask.Close()
+
 		for {
 			DoneCheck := []bool{false, false}
 			LinerData := []image.Rectangle{}
 
 			select {
 
-			case _LinerData := <-YoloDone: // YOLO 인식 먼저 끝나면 움직임 감지 끝 기다리기 (움직임 감지는 오래걸림)
+			case _LinerData := <-YoloDone: // 감지 먼저 끝나면 움직임 감지 끝 기다리기 (움직임 감지는 오래걸림)
 				LinerData = _LinerData
 				DoneCheck[0] = true
 				fmt.Println("YOLO Done.")
@@ -133,7 +136,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				}
 
 			}
-
+			// 예외 욜로 먼저끝나고 움직임 감지 끝나고 움직임 감지 시작
 			if !DoneCheck[0] || !DoneCheck[1] {
 				fmt.Println("Done Fail.")
 				continue
@@ -144,11 +147,15 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 			mask = gocv.NewMat()
 
-			qSize := movingQ.Length()
+			movingQ_Copy := queue.New()
+			CloneValue(movingQ, movingQ_Copy)
+			movingQ.Clean()
+
+			qSize := movingQ_Copy.Length()
 			fmt.Printf("%d\n", qSize)
 			for i := 0; i < qSize; i++ {
 				//fmt.Printf("q: %d\n", movingQ.Length())
-				img := movingQ.Pop().(gocv.Mat)
+				img := movingQ_Copy.Pop().(gocv.Mat)
 				if !Prev.Empty() {
 					//fmt.Printf("RC %v\n",PrevPts.Size())
 					MotionLiner(Prev, img, &PrevPts, &mask, criteria, LinerData)
@@ -160,7 +167,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				img.Close()
 				//LinerData.img.Close()
 			}
-			fmt.Printf("qSize : %d\tEmp : %v\n", movingQ.Length(), ResultMotionLine.Empty())
+			fmt.Printf("qSize : %d\tEmp : %v\n", movingQ_Copy.Length(), ResultMotionLine.Empty())
 			if !ResultMotionLine.Empty() {
 				buf, _ := gocv.IMEncode(".jpg", ResultMotionLine)
 				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
