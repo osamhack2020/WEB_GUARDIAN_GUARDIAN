@@ -74,25 +74,25 @@ export default function CameraWrapper() {
         </Col>
         <Col span={8}>
           <Row  gutter={[16,16]}>
-          <Col style={{width:'60vh'}} id="1" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
+          <Col style={{width:'60vh'}} id="1"  draggable="true" onDragStart={onDragStart}>
             <Camera CameraURL={ViewURL[1]} height="30vh" />
             </Col>
           </Row>
           <Row gutter={[16,16]}>
-          <Col style={{width:'60vh'}} id="2" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
+          <Col style={{width:'60vh'}} id="2"  draggable="true" onDragStart={onDragStart}>
             <Camera CameraURL={ViewURL[2]} height="30vh" />
             </Col>
           </Row>
         </Col>
       </Row>
       <Row style={{ height: "30vh" }} gutter={16}>
-        <Col span={8} id="3" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
+        <Col span={8} id="3"  draggable="true" onDragStart={onDragStart}>
         <Camera CameraURL={ViewURL[3]} height="30vh" />
         </Col>
-        <Col span={8} id="4" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
+        <Col span={8} id="4"  draggable="true" onDragStart={onDragStart}>
         <Camera CameraURL={ViewURL[4]} height="30vh" />
         </Col>
-        <Col span={8} id="5" onDrop={onDrop} onDragOver={onDragOver} draggable="true" onDragStart={onDragStart}>
+        <Col span={8} id="5"  draggable="true" onDragStart={onDragStart}>
         <Camera CameraURL={ViewURL[5]} height="30vh" />
         </Col>
       </Row>
