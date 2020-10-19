@@ -81,7 +81,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 				Server.BroadcastToAll("detect", string(b))
 
 			}
-			YoloDone <- detectBoxes
+			//	YoloDone <- detectBoxes
 			YoloData.original.Close()
 			YoloData.roi.Close()
 		}
@@ -225,6 +225,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 								YoloChannel <- IYoloData{original, roi}
 							}(img.Clone(), resultROI.Clone())
 						} else if timeSeq && ingTime > 2.0 {
+							go func(original gocv.Mat, roi gocv.Mat) {
+								YoloChannel <- IYoloData{original, roi}
+							}(img.Clone(), resultROI.Clone())
 							//fmt.Printf("moving Q: %d\n", movingQ.Length())
 							movingQ.Append(img.Clone()) // 나중에 mutex
 
