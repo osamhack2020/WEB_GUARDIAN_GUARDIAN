@@ -71,14 +71,20 @@ func ReadCOCO() []string {
 }
 
 // drawRect : Detect Class to Draw Rect
-func drawRect(img *gocv.Mat, boxes []image.Rectangle, classes []string, classIds []int, indices []int) ([]string, []image.Rectangle) {
+func drawRect(img *gocv.Mat, boxes []image.Rectangle, ignoreBox []image.Rectangle, classes []string, ignoreClass []string, classIds []int, indices []int) ([]string, []image.Rectangle) {
 	var detectClass []string
 	detectBox := []image.Rectangle{}
 	for _, idx := range indices {
 		if idx == 0 {
 			continue
 		}
+		if IsContainStrings(ignoreClass, classes[classIds[idx]]) {
+			continue
+		}
 		box := image.Rect(boxes[idx].Max.X, boxes[idx].Max.Y, boxes[idx].Max.X+boxes[idx].Min.X, boxes[idx].Max.Y+boxes[idx].Min.Y)
+		if IsContainBoxs(ignoreBox, box) {
+			continue
+		}
 		detectBox = append(detectBox, box)
 		gocv.Rectangle(img, box, color.RGBA{255, 0, 0, 0}, 2)
 		gocv.PutText(img, classes[classIds[idx]], image.Point{boxes[idx].Max.X, boxes[idx].Max.Y + 30}, gocv.FontHersheyPlain, 5, color.RGBA{0, 0, 255, 0}, 3)
@@ -99,7 +105,7 @@ func TransPos(FrontInfo DetectPointInfo, CameraIdx int, CvViewSize image.Point) 
 }
 
 // Detect : Run YOLOv4 Process
-func YoloDetect(net *gocv.Net, src gocv.Mat, ori *gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string) ([]string, []image.Rectangle) {
+func YoloDetect(net *gocv.Net, src *gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string, ignoreClass []string, ignoreBox []image.Rectangle) ([]string, []image.Rectangle) {
 	ConvMat := src.Clone()
 	src.ConvertTo(&ConvMat, gocv.MatTypeCV32F)
 	blob := gocv.BlobFromImage(ConvMat, 1/255.0, image.Pt(416, 416), gocv.NewScalar(0, 0, 0, 0), true, false)
@@ -112,5 +118,5 @@ func YoloDetect(net *gocv.Net, src gocv.Mat, ori *gocv.Mat, scoreThreshold float
 		return []string{}, []image.Rectangle{}
 	}
 	gocv.NMSBoxes(boxes, confidences, scoreThreshold, nmsThreshold, indices)
-	return drawRect(ori, boxes, classes, classIds, indices)
+	return drawRect(src, boxes, ignoreBox, classes, ignoreClass, classIds, indices)
 }

@@ -54,6 +54,7 @@ func DetectArea(img gocv.Mat, mask gocv.Mat, result *gocv.Mat, info DetectPointI
 			fmt.Println(s)
 		}
 	}()
+	gocv.Resize(img, &img, encodingSize, 0, 0, 0)
 	gocv.FillPoly(&mask, info.DetectPoint, color.RGBA{255, 255, 255, 0})
 	gocv.BitwiseAnd(img, mask, result)
 }

@@ -67,24 +67,25 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	}()
 	var NowTime string
 	var detectClass []string
-	var detectBoxes []image.Rectangle
+	ignoreBox := []image.Rectangle{}
+	//var detectBoxes []image.Rectangle
 	movingQ := queue.New()
 	go func() { // Yolo Thread
-		for YoloData := range YoloChannel {
-			NowTime = time.Now().Format("2006-01-02 15:04:05")
-			detectClass, detectBoxes = YoloDetect(&net, YoloData.roi, &YoloData.original, 0.45, 0.5, OutputNames, classes)
+		// for YoloData := range YoloChannel {
+		// 	NowTime = time.Now().Format("2006-01-02 15:04:05")
+		// 	// detectClass, detectBoxes = YoloDetect(&net, &YoloData.original, 0.45, 0.5, OutputNames, classes)
 
-			fmt.Printf("class : %v %v\n ", detectClass, YoloData.original.Empty())
-			if len(detectClass) > 0 && !YoloData.original.Empty() {
-				buf, _ := gocv.IMEncode(".jpg", YoloData.original)
-				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-				Server.BroadcastToAll("detect", string(b))
+		// 	// fmt.Printf("class : %v %v\n ", detectClass, YoloData.original.Empty())
+		// 	// if len(detectClass) > 0 && !YoloData.original.Empty() {
+		// 	// 	buf, _ := gocv.IMEncode(".jpg", YoloData.original)
+		// 	// 	b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
+		// 	// 	Server.BroadcastToAll("detect", string(b))
 
-			}
-			//	YoloDone <- detectBoxes
-			YoloData.original.Close()
-			YoloData.roi.Close()
-		}
+		// 	// }
+		// 	// //	YoloDone <- detectBoxes
+		// 	// YoloData.original.Close()
+		// 	// YoloData.roi.Close()
+		// }
 	}()
 
 	Result := gocv.NewMat()
@@ -225,9 +226,6 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 								YoloChannel <- IYoloData{original, roi}
 							}(img.Clone(), resultROI.Clone())
 						} else if timeSeq && ingTime > 2.0 {
-							go func(original gocv.Mat, roi gocv.Mat) {
-								YoloChannel <- IYoloData{original, roi}
-							}(img.Clone(), resultROI.Clone())
 							//fmt.Printf("moving Q: %d\n", movingQ.Length())
 							movingQ.Append(img.Clone()) // 나중에 mutex
 
@@ -250,7 +248,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		}
 
 	}()
+	resizeImg := gocv.NewMat()
 
+	defer resizeImg.Close()
 	for {
 		if ok := cap.Read(&img); !ok {
 			log.Println("RTSP Close")
@@ -262,12 +262,22 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			continue
 		}
 
-		gocv.Resize(img, &img, encodingSize, 0, 0, 0)
-		buf, _ := gocv.IMEncode(".jpg", img)
-
+		gocv.Resize(img, &resizeImg, encodingSize, 0, 0, 0)
+		buf, _ := gocv.IMEncode(".jpg", resizeImg)
 		ViewChannel <- buf
-		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 { // 좌표 설정 돼있을 경우 이거 지우면 프로그램 안멈춤.
 
+		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 {
+			_, ignoreBox = YoloDetect(&net,
+				&img,
+				0.45,
+				0.5,
+				OutputNames,
+				classes,
+				[]string{"person"},
+				[]image.Rectangle{}) // 배경에 있는 사람 제외 고정 물체 좌표 저장 (나중에 인식할 때 제외하기 위함).
+			if len(ignoreBox) == 0 {
+
+			}
 			FrameChannel <- img.Clone()
 		}
 		gocv.WaitKey(1)
