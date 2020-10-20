@@ -5,6 +5,7 @@ WORKDIR /usr/src/app
 
 #package.josn and package-lock.josn
 COPY package*.json ./
+COPY logo128.png ./logo128.png
 
 RUN npm install
 
