@@ -57,7 +57,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
 			detectClass, detectBox = YoloDetect(net, &YoloData, 0.45, 0.5, OutputNames, classes, []string{}, ignoreBox) //고정 좌표 제외하고 식별
-			fmt.Printf("class : %v\n ", detectClass)
+			fmt.Printf("class : %v %v\n ", detectClass, detectBox)
 			if len(detectClass) > 0 && !YoloData.Empty() {
 				buf, _ := gocv.IMEncode(".jpg", YoloData)
 				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
@@ -90,7 +90,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	defer mog2.Close()
 
 	// YOLO Init
-	net := gocv.ReadNet("./assets/yolov4.weights", "./assets/yolov4.cfg")
+	net := gocv.ReadNet("./assets/yolov4-tiny.weights", "./assets/yolov4-tiny.cfg")
 	defer net.Close()
 	net.SetPreferableBackend(gocv.NetBackendType(gocv.NetBackendDefault))
 	net.SetPreferableTarget(gocv.NetTargetType(gocv.NetTargetCPU))
