@@ -55,7 +55,6 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	FrameSeq := 0
 	fmt.Println("YOLO Routine Start.")
 
-	fmt.Printf("CPU2 : %v\n", runtime.GOMAXPROCS(0))
 	for YoloData := range YoloChannel {
 		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
@@ -87,13 +86,12 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 
 func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	fmt.Printf("CPU : %v\n", runtime.GOMAXPROCS(0))
-	cap, err := gocv.OpenVideoCapture(CapUrl)
+	Cap, err := gocv.OpenVideoCapture(CapUrl)
 	if err != nil {
 		fmt.Printf("Error opening capture device")
 		return
 	}
-	defer cap.Close()
+	defer Cap.Close()
 
 	// Motion Init
 	mog2 := gocv.NewBackgroundSubtractorMOG2()
@@ -122,8 +120,6 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		img   gocv.Mat
 		rects []image.Rectangle
 	}
-	//YoloDone := make(chan []image.Rectangle)
-	//MotionDone := make(chan bool)
 
 	var DPI DetectPointInfo
 	go func() { // Set DetectPointInfo
@@ -133,11 +129,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			break
 		}
 	}()
-	//var NowTime string
-	//var detectClass []string
 	ignoreBox := []image.Rectangle{}
-	//var detectBoxes []image.Rectangle
-	//	movingQ := queue.New()
 
 	Result := gocv.NewMat()
 	defer Result.Close()
@@ -154,6 +146,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		var startTime time.Time
 		var startFlag bool
 
+		imgResize := gocv.NewMat()
+		defer imgResize.Close()
+
 		imgDelta := gocv.NewMat()
 		defer imgDelta.Close()
 
@@ -165,25 +160,13 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		resultROI := gocv.NewMatWithSize(encodingSize.Y, encodingSize.X, gocv.MatTypeCV8UC3)
 		defer resultROI.Close()
 
-		// var resultROI gocv.Mat
-		// defer resultROI.Close()
-
-		/*
-					panic: runtime error: index out of range [250] with length 32
-
-			goroutine 39 [running]:
-			github.com/sheerun/queue.(*Queue).Append(0xc000086b40, 0x79dd80, 0x7f36f84b34c0)
-			        /home/gron1gh1/go/src/github.com/sheerun/queue/queue.go:97 +0x3b0
-			main.DetectStart.func4(0xc0000b6540, 0xc00014a1e0, 0xc0000b4138, 0xc000086b40, 0xc0000b65a0, 0xc0000a6d20, 0xc0000b6600, 0xc0000b4150, 0xc0000a6d00, 0xc000148130, ...)
-			        /home/gron1gh1/code-server-gocv/data/code-server/config/workspace/WEB_BACK/cv_core.go:165 +0x3ae
-		*/
 		timeSeq := false
 		oriImg := gocv.NewMat()
 		defer oriImg.Close()
 
 		for img := range FrameChannel {
-			oriImg = img.Clone()
-			DetectArea(img, mask, &resultROI, DPI)
+			gocv.Resize(img, &imgResize, encodingSize, 0, 0, 0)
+			DetectArea(imgResize, mask, &resultROI, DPI)
 
 			motionCnt := MotionDetect(resultROI, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
@@ -198,10 +181,11 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 							fmt.Println("움직임 감지 2초")
 							timeSeq = true
 							// run YoloRoutine.
-							YoloChannel = make(chan gocv.Mat, 2)
+							fmt.Printf("Channel Buf : %v %v\n", len(YoloChannel), cap(YoloChannel))
+
 							go YoloRoutine(Server, &net, OutputNames, classes, ignoreBox)
 						} else if timeSeq && ingTime > 2.0 {
-							YoloChannel <- oriImg
+							YoloChannel <- img.Clone()
 						}
 					}
 
@@ -212,8 +196,11 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					if timeSeq {
 						timeSeq = false
 						fmt.Println("움직임 감지 끝")
+						fmt.Printf("Channel Buf : %v %v\n", len(YoloChannel), cap(YoloChannel))
+						FlushChannel(&YoloChannel)
+						fmt.Printf("Channel Buf : %v %v\n", len(YoloChannel), cap(YoloChannel))
 						close(YoloChannel)
-						//YoloChannel = make(chan gocv.Mat)
+						YoloChannel = make(chan gocv.Mat, 2)
 					}
 				}
 			}
@@ -225,9 +212,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	var once sync.Once
 	defer resizeImg.Close()
 	for {
-		if ok := cap.Read(&img); !ok {
+		if ok := Cap.Read(&img); !ok {
 			log.Println("RTSP Close")
-			cap, _ = gocv.OpenVideoCapture(CapUrl)
+			Cap, _ = gocv.OpenVideoCapture(CapUrl)
 			log.Println("RTSP ReStart")
 		}
 		if img.Empty() {

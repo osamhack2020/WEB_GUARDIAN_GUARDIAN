@@ -4,6 +4,8 @@ import (
 	"image"
 	"reflect"
 	"sort"
+
+	"gocv.io/x/gocv"
 )
 
 var ViewChannel = make(chan []byte)
@@ -50,4 +52,19 @@ func IsContainBoxs(ignoreBox []image.Rectangle, Box image.Rectangle) bool {
 		}
 	}
 	return false
+}
+
+func FlushChannel(channel *chan gocv.Mat) {
+	if len(*channel) == cap(*channel) {
+		chanSz := len(*channel)
+		for i := 0; i < chanSz; i++ {
+			// Channel was full, but might not be by now
+			select {
+			case <-*channel:
+			// Discard one item
+			default:
+				// Maybe it was empty already
+			}
+		}
+	}
 }
