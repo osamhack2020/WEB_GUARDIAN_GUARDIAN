@@ -6,6 +6,7 @@ import (
 	"image"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	gosocketio "github.com/graarh/golang-socketio"
@@ -42,6 +43,16 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	mask := gocv.NewMat()
 	defer mask.Close()
 
+	defer func() { // 함수 끝나면 실행
+		fmt.Println("YOLO Routine End.")
+		if !ResultMotionLine.Empty() {
+			buf, _ := gocv.IMEncode(".jpg", ResultMotionLine)
+			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
+			Server.BroadcastToAll("detect", string(b))
+		}
+	}()
+
+	fmt.Println("YOLO Routine Start.")
 	for YoloData := range YoloChannel {
 		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
@@ -61,12 +72,6 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 				}
 			}
 			Prev = YoloData.Clone()
-			if !ResultMotionLine.Empty() {
-				buf, _ := gocv.IMEncode(".jpg", ResultMotionLine)
-				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-				Server.BroadcastToAll("detect", string(b))
-			}
-
 		}
 		YoloData.Close()
 	}
@@ -213,6 +218,9 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		}
 	}()
 	go func() { // Motion Detect Thread
+		defer func() {
+			recover()
+		}()
 		var startTime time.Time
 		var startFlag bool
 
@@ -283,7 +291,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 	}()
 	resizeImg := gocv.NewMat()
-
+	var once sync.Once
 	defer resizeImg.Close()
 	for {
 		if ok := cap.Read(&img); !ok {
@@ -301,15 +309,17 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		ViewChannel <- buf
 
 		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 {
-			_, ignoreBox = YoloDetect(&net,
-				&img,
-				0.45,
-				0.5,
-				OutputNames,
-				classes,
-				[]string{"person"},
-				[]image.Rectangle{}) // 배경에 있는 사람 제외 고정 물체 좌표 저장 (나중에 인식할 때 제외하기 위함).
-
+			once.Do(func() {
+				_, ignoreBox = YoloDetect(&net,
+					&img,
+					0.45,
+					0.5,
+					OutputNames,
+					classes,
+					[]string{"person"},
+					[]image.Rectangle{}) // 배경에 있는 사람 제외 고정 물체 좌표 저장 (나중에 인식할 때 제외하기 위함).
+				fmt.Printf("Ignore Box : %v\n", ignoreBox)
+			})
 			FrameChannel <- img.Clone()
 		}
 		gocv.WaitKey(1)
