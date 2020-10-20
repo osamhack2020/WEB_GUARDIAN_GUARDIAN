@@ -36,9 +36,18 @@ func IsContainStrings(s []string, searchterm string) bool {
 // Check Box Array Contains Box
 func IsContainBoxs(ignoreBox []image.Rectangle, Box image.Rectangle) bool {
 	for _, igbox := range ignoreBox {
-		if igbox.String() == Box.String() {
-			return true
+		if igbox.Max.X-5 > Box.Max.X || Box.Max.X > igbox.Max.X+5 {
+			return false
+		}
+		if igbox.Max.Y-5 > Box.Max.Y || Box.Max.Y > igbox.Max.Y+5 {
+			return false
+		}
+		if igbox.Min.X-5 > Box.Min.X || Box.Min.X > igbox.Min.X+5 {
+			return false
+		}
+		if igbox.Min.Y-5 > Box.Min.Y || Box.Min.Y > igbox.Min.Y+5 {
+			return false
 		}
 	}
-	return false
+	return true
 }

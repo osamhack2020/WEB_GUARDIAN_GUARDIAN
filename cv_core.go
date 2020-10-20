@@ -52,18 +52,25 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 		}
 	}()
 
+	FrameSeq := 0
 	fmt.Println("YOLO Routine Start.")
 	for YoloData := range YoloChannel {
+		fmt.Println("GET")
 		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
-			detectClass, detectBox = YoloDetect(net, &YoloData, 0.45, 0.5, OutputNames, classes, []string{}, ignoreBox) //고정 좌표 제외하고 식별
-			fmt.Printf("class : %v %v\n ", detectClass, detectBox)
-			if len(detectClass) > 0 && !YoloData.Empty() {
-				buf, _ := gocv.IMEncode(".jpg", YoloData)
-				b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-				Server.BroadcastToAll("detect", string(b))
-				YoloCheck = true
+			FrameSeq++
+			if FrameSeq%30 == 0 {
+				detectClass, detectBox = YoloDetect(net, &YoloData, 0.45, 0.5, OutputNames, classes, []string{}, ignoreBox) //고정 좌표 제외하고 식별
+				fmt.Printf("class : %v %v\n ", detectClass, detectBox)
+				if len(detectClass) > 0 && !YoloData.Empty() {
+					buf, _ := gocv.IMEncode(".jpg", YoloData)
+					b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
+					Server.BroadcastToAll("detect", string(b))
+					YoloCheck = true
+				}
+				FrameSeq = 0
 			}
+
 		} else if YoloCheck { // YOLO 탐지 됐으면 OpticalFlow 시작
 			if !Prev.Empty() {
 				MotionLiner(Prev, YoloData, &PrevPts, &mask, criteria, detectBox)
@@ -219,7 +226,8 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 	}()
 	go func() { // Motion Detect Thread
 		defer func() {
-			recover()
+			i := recover()
+			fmt.Println(i)
 		}()
 		var startTime time.Time
 		var startFlag bool
