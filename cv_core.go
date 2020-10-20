@@ -282,7 +282,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 						timeSeq = false
 						fmt.Println("움직임 감지 끝")
 						close(YoloChannel)
-
+						YoloChannel = make(chan gocv.Mat)
 					}
 				}
 			}
