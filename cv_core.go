@@ -55,7 +55,6 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	FrameSeq := 0
 	fmt.Println("YOLO Routine Start.")
 	for YoloData := range YoloChannel {
-		fmt.Println("GET")
 		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
 			FrameSeq++
@@ -263,6 +262,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 			oriImg = img.Clone()
 			DetectArea(img, mask, &resultROI, DPI)
 
+			fmt.Println("GET")
 			motionCnt := MotionDetect(resultROI, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
 
@@ -275,7 +275,8 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 						if !timeSeq && ingTime > 2.0 {
 							fmt.Println("움직임 감지 2초")
 							timeSeq = true
-							// run YoloRoutine
+							// run YoloRoutine.
+							YoloChannel = make(chan gocv.Mat)
 							go YoloRoutine(Server, &net, OutputNames, classes, ignoreBox)
 						} else if timeSeq && ingTime > 2.0 {
 							YoloChannel <- oriImg
@@ -290,7 +291,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 						timeSeq = false
 						fmt.Println("움직임 감지 끝")
 						close(YoloChannel)
-						YoloChannel = make(chan gocv.Mat)
+						//YoloChannel = make(chan gocv.Mat)
 					}
 				}
 			}

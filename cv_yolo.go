@@ -79,10 +79,12 @@ func drawRect(img *gocv.Mat, boxes []image.Rectangle, ignoreBox []image.Rectangl
 			continue
 		}
 		if IsContainStrings(ignoreClass, classes[classIds[idx]]) {
+			//fmt.Printf("continue %v in %v\n", ignoreClass, classes[classIds[idx]])
 			continue
 		}
 		box := image.Rect(boxes[idx].Max.X, boxes[idx].Max.Y, boxes[idx].Max.X+boxes[idx].Min.X, boxes[idx].Max.Y+boxes[idx].Min.Y)
 		if IsContainBoxs(ignoreBox, box) {
+			//fmt.Printf("continue2 %v\n", classes[classIds[idx]])
 			continue
 		}
 		detectBox = append(detectBox, box)
@@ -108,7 +110,7 @@ func TransPos(FrontInfo DetectPointInfo, CameraIdx int, CvViewSize image.Point) 
 func YoloDetect(net *gocv.Net, src *gocv.Mat, scoreThreshold float32, nmsThreshold float32, OutputNames []string, classes []string, ignoreClass []string, ignoreBox []image.Rectangle) ([]string, []image.Rectangle) {
 	ConvMat := src.Clone()
 	src.ConvertTo(&ConvMat, gocv.MatTypeCV32F)
-	blob := gocv.BlobFromImage(ConvMat, 1/255.0, image.Pt(416, 416), gocv.NewScalar(0, 0, 0, 0), true, false)
+	blob := gocv.BlobFromImage(ConvMat, 1/255.0, image.Pt(640, 640), gocv.NewScalar(0, 0, 0, 0), true, false)
 	net.SetInput(blob, "")
 	probs := net.ForwardLayers(OutputNames)
 	boxes, confidences, classIds := PostProcess(ConvMat, &probs)
