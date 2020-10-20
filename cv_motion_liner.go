@@ -98,5 +98,4 @@ func MotionLiner(Prev gocv.Mat, Curr gocv.Mat, PrevPts *gocv.Mat, mask *gocv.Mat
 		}
 	}
 	*PrevPts = Point2fToMat(good_new)
-	Prev.Close()
 }

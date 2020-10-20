@@ -78,6 +78,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 					gocv.Add(YoloData, mask, &ResultMotionLine)
 				}
 			}
+			Prev.Close()
 			Prev = YoloData.Clone()
 		}
 		YoloData.Close()
