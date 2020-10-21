@@ -7,6 +7,7 @@ import {
 } from "immer-reducer";
 import { CameraRTSPUrl } from "./Util";
 import { IClickPos, IDetectData } from "./Interface";
+import { SwapLeftOutlined } from "@ant-design/icons";
 export interface IMainState {
   ViewURL: string[];
   DetectLog: IDetectData[];
@@ -31,6 +32,11 @@ class MainReducer extends ImmerReducer<IMainState> {
       content: content + " 식별",
       time: time,
     });
+  }
+  swap(a:string, b:string){
+    var c = this.draftState.ViewURL[Number(a)];
+    this.draftState.ViewURL[Number(a)] = this.draftState.ViewURL[Number(b)];
+    this.draftState.ViewURL[Number(b)] = c;
   }
 }
 

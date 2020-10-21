@@ -44,37 +44,56 @@ function Camera({  CameraURL, height}: ICamera) {
     </Spin>
   );
 }
-
+var M='0';
 export default function CameraWrapper() {
   const ViewURL = useSelector((state : ISelect) => state.mainReducer.ViewURL);
+  const dispatch = useDispatch();
+  const onDragStart = (e:any)=>{
+    e.dataTransfer.setData("targetId",e.target.id);
+  }
+  const onDragOver = (e:any)=>{
+    e.preventDefault();
+    e.dataTransfer.dropEffect ="move";
+  }
+  const onDrop = (e:any)=>{
+    let startId = e.dataTransfer.getData("targetId");
+    M=(startId);
+    dispatch(
+      MainActions.swap(M,'0')
+    )
+  }
+  useEffect(() : any => {
+    console.log(ViewURL);
+  }, [ViewURL]);
+  
   return (
     <div>
       <Row style={{ height: "63vh"}} gutter={16}>
-        <Col span={16}>
+        <Col span={16} id="0" onDrop={onDrop} onDragOver={onDragOver}>
           <Camera CameraURL={ViewURL[0]} height="61.6vh" />
         </Col>
         <Col span={8}>
           <Row  gutter={[16,16]}>
-          <Col style={{width:'60vh'}}>
+          <Col style={{width:'60vh'}} id="1"  draggable="true" onDragStart={onDragStart}>
             <Camera CameraURL={ViewURL[1]} height="30vh" />
             </Col>
           </Row>
           <Row gutter={[16,16]}>
-          <Col style={{width:'60vh'}}>
+          <Col style={{width:'60vh'}} id="2"  draggable="true" onDragStart={onDragStart}>
             <Camera CameraURL={ViewURL[2]} height="30vh" />
             </Col>
           </Row>
         </Col>
       </Row>
       <Row style={{ height: "30vh" }} gutter={16}>
-        <Col span={8}>
-        <Camera CameraURL={ViewURL[0]} height="30vh" />
+        <Col span={8} id="3"  draggable="true" onDragStart={onDragStart}>
+        <Camera CameraURL={ViewURL[3]} height="30vh" />
         </Col>
-        <Col span={8}>
-        <Camera CameraURL={ViewURL[2]} height="30vh" />
+        <Col span={8} id="4"  draggable="true" onDragStart={onDragStart}>
+        <Camera CameraURL={ViewURL[4]} height="30vh" />
         </Col>
-        <Col span={8}>
-        <Camera CameraURL={ViewURL[2]} height="30vh" />
+        <Col span={8} id="5"  draggable="true" onDragStart={onDragStart}>
+        <Camera CameraURL={ViewURL[5]} height="30vh" />
         </Col>
       </Row>
     </div>
