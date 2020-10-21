@@ -5,21 +5,13 @@
 /docker/docker-compose/node_modules
 /docker/node/node_modules
 
-# docker db
-/docker/docker-compose/data
-
 # dependencies
-<<<<<<< HEAD
 /node_modules
 /docker/docker-compose/node_modules
 /docker/node/node_modules
-/.pnp
-.pnp.js
-=======
 frontend/node_modules
 frontend/.pnp
 frontend/.pnp.js
->>>>>>> frontend
 
 # testing
 frontend/coverage
@@ -34,20 +26,3 @@ frontend/.env.development.local
 frontend/.env.test.local
 frontend/.env.production.local
 
-<<<<<<< HEAD
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-/assets/yolov4.weights
-yarn.lock
-src/react-app-env.d.ts
-
-# backend npm modules, session
-backend/node_modules
-backend/sessions
-=======
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-backend/assets/yolov4.weights
->>>>>>> frontend
