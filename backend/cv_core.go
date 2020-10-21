@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -49,9 +50,10 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 
 	VideoFileName := strings.ReplaceAll(NowTime, ":", "")
 	VideoFileName = strings.ReplaceAll(VideoFileName, " ", "_")
-	fmt.Printf("Video File : %v\n", "video/"+VideoFileName+".mp4")
+	VideoFileName = "video/" + VideoFileName + ".mp4"
+	fmt.Printf("Video File : %v\n", VideoFileName)
 	writer, err := gocv.VideoWriterFile(
-		"video/"+VideoFileName+".mp4", "avc1", fps, encodingSize.X, encodingSize.Y, true)
+		VideoFileName, "avc1", fps, encodingSize.X, encodingSize.Y, true)
 	if err != nil {
 		fmt.Errorf("VideoWriter Error: %v\n", err)
 	}
@@ -68,7 +70,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 		if YoloCheck { // 모션 라이너 끝나고
 
 		} else { // YOLO 탐지 안되고 끝났으면
-
+			os.Remove(VideoFileName)
 		}
 	}()
 
