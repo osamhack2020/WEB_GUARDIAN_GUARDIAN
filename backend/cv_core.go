@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -15,6 +16,7 @@ import (
 )
 
 var YoloChannel = make(chan gocv.Mat, 2)
+var fps = 20.0
 
 type IDetect struct {
 	Thumbnail []byte `json:"thumbnail"`
@@ -43,6 +45,9 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	mask := gocv.NewMat()
 	defer mask.Close()
 
+	writer, _ := gocv.VideoWriterFile(
+		"tmp.mp4", "MP4V", fps, 1920, 1080, true)
+
 	defer func() { // 함수 끝나면 실행
 		fmt.Println("YOLO Routine End.")
 		if !ResultMotionLine.Empty() {
@@ -50,12 +55,19 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
 			Server.BroadcastToAll("detect", string(b))
 		}
+		writer.Close()
+		if YoloCheck { // 모션 라이너 끝나고
+
+		} else { // YOLO 탐지 안되고 끝났으면
+			os.Remove("tmp.mp4")
+		}
 	}()
 
 	FrameSeq := 0
 	fmt.Println("YOLO Routine Start.")
 
 	for YoloData := range YoloChannel {
+		gocv.Resize(YoloData, &YoloData, encodingSize, 0, 0, 0)
 		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
 			FrameSeq++
@@ -72,7 +84,9 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 			}
 
 		} else if YoloCheck { // YOLO 탐지 됐으면 OpticalFlow 시작
+
 			if !Prev.Empty() {
+				writer.Write(YoloData)
 				MotionLiner(Prev, YoloData, &PrevPts, &mask, criteria, detectBox)
 				if !mask.Empty() {
 					gocv.Add(YoloData, mask, &ResultMotionLine)
@@ -93,7 +107,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 		return
 	}
 	defer Cap.Close()
-
+	fps = Cap.Get(gocv.VideoCaptureFPS)
 	// Motion Init
 	mog2 := gocv.NewBackgroundSubtractorMOG2()
 	defer mog2.Close()
