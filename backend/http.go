@@ -24,6 +24,7 @@ func main() {
 	DetectPointChannel := make(chan DetectPointInfo)
 	e := echo.New()
 	e.Use(middleware.CORS())
+	e.Static("/detect_video", "video")
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello World!")
 	})
