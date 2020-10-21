@@ -47,7 +47,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 
 	fmt.Printf("FPS %d\n", fps)
 	writer, err := gocv.VideoWriterFile(
-		"video/tmp.mp4", "mp4v", fps, encodingSize.X, encodingSize.Y, true)
+		"video/tmp.mp4", "avc1", fps, encodingSize.X, encodingSize.Y, true)
 	if err != nil {
 		fmt.Errorf("VideoWriter Error: %v\n", err)
 	}
