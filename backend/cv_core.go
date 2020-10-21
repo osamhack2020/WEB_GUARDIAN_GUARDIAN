@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"image"
 	"log"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -25,7 +24,8 @@ type IDetect struct {
 }
 
 func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string, classes []string, ignoreBox []image.Rectangle) { // Yolo Routine
-	var NowTime string
+	NowTime := time.Now().Format("2006-01-02 15:04:05")
+
 	YoloCheck := false
 
 	detectClass := []string{}
@@ -46,11 +46,16 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	defer mask.Close()
 
 	fmt.Printf("FPS %d\n", fps)
+
+	VideoFileName := strings.ReplaceAll(NowTime, ":", "")
+	VideoFileName = strings.ReplaceAll(VideoFileName, " ", "_")
+	fmt.Printf("Video File : %v\n", "video/"+VideoFileName+".mp4")
 	writer, err := gocv.VideoWriterFile(
-		"video/tmp.mp4", "avc1", fps, encodingSize.X, encodingSize.Y, true)
+		"video/"+VideoFileName+".mp4", "avc1", fps, encodingSize.X, encodingSize.Y, true)
 	if err != nil {
 		fmt.Errorf("VideoWriter Error: %v\n", err)
 	}
+
 	defer func() { // 함수 끝나면 실행
 		fmt.Println("YOLO Routine End.")
 		if !ResultMotionLine.Empty() {
@@ -63,7 +68,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 		if YoloCheck { // 모션 라이너 끝나고
 
 		} else { // YOLO 탐지 안되고 끝났으면
-			os.Remove("tmp.mp4")
+
 		}
 	}()
 
@@ -72,7 +77,6 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 
 	for YoloData := range YoloChannel {
 		//	gocv.Resize(YoloData, &YoloData, encodingSize, 0, 0, 0)
-		NowTime = time.Now().Format("2006-01-02 15:04:05")
 		if !YoloCheck { // YOLO 탐지 안됐다면
 			FrameSeq++
 			if FrameSeq%30 == 0 {
