@@ -28,6 +28,9 @@
 
 ### Infra
  - Docker
+
+### Machine-learnung
+ - Darknet Yolov4-tiny
  
 ## 설치 안내 (Installation Process)
 - NodeJS + yarn 과 git 설치 (리눅스 우분투 기준)
