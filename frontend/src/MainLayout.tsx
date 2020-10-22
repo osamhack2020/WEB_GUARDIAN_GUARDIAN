@@ -61,7 +61,7 @@ export default function MainLayout({
     return "0";
   }, []);
 
-  useEffect(() : any => {
+  useEffect((): any => {
     socket.on("detect", function (res: string) {
       //  console.log(res)
       let DetectData = JSON.parse(res);
@@ -73,7 +73,7 @@ export default function MainLayout({
         )
       );
     });
-    return () : any => socket.off("frame"); // componentWillUnmount
+    return (): any => socket.off("frame"); // componentWillUnmount
   }, []);
   return (
     <Router>

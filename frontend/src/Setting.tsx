@@ -80,7 +80,7 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     let Pos = ClickPos.slice();
     Pos[CameraIdx] = [];
     SetPos(Pos);
-  }; 
+  };
 
   const menu = useCallback(
     // 화면 우클릭 카메라 설정
@@ -99,7 +99,12 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     canvas?.addEventListener("click", onCanvasClick);
     if (ClickPos[CameraIdx].length > 0) {
-      dispatch(SettinActions.SetConvexHullPos(CameraIdx, ConvexHull_2D(ClickPos[CameraIdx].slice())));
+      dispatch(
+        SettinActions.SetConvexHullPos(
+          CameraIdx,
+          ConvexHull_2D(ClickPos[CameraIdx].slice())
+        )
+      );
     } else if (ClickPos[CameraIdx].length === 0) {
       // 배열에 간선이 0개 이면 이전에 그려진 그림 초기화
       let ctx: CanvasContext = canvas?.getContext("2d");
@@ -132,7 +137,7 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
         ConvexHullPos[CameraIdx][0]
       );
     }
-  }, [ConvexHullPos,CameraIdx]);
+  }, [ConvexHullPos, CameraIdx]);
 
   return (
     <div>
@@ -209,7 +214,7 @@ export function RuningFooter() {
   );
   const [WorkState, SetWorkState] = useState(StateTag.wait);
   const PostPos = () => {
-    axios.post(`${BACKEND_URL}/SetDetectData`,ConvexHullPos);
+    axios.post(`${BACKEND_URL}/SetDetectData`, ConvexHullPos);
   };
   return (
     <Layout.Footer
@@ -222,15 +227,17 @@ export function RuningFooter() {
           setTimeout(() => {
             SetWorkState(StateTag.success);
             console.log({
-              ViewSize:{X:ScreenX,Y:ScreenY},
-              DetectPoint:ConvexHullPos
+              ViewSize: { X: ScreenX, Y: ScreenY },
+              DetectPoint: ConvexHullPos,
             });
-            axios.post(`${BACKEND_URL}/SetDetectPoint`,{
-              ViewSize:{X:ScreenX,Y:ScreenY},
-              DetectPoint:ConvexHullPos
-            }).then(function (response) {
-              console.log(response);
-            });
+            axios
+              .post(`${BACKEND_URL}/SetDetectPoint`, {
+                ViewSize: { X: ScreenX, Y: ScreenY },
+                DetectPoint: ConvexHullPos,
+              })
+              .then(function (response) {
+                console.log(response);
+              });
           }, 1000);
         }}
       >
@@ -257,7 +264,6 @@ export default function Setting() {
           <span>
             설정 <Slider defaultValue={10} tooltipVisible />
           </span>
-
         </Col>
       </Row>
     </>

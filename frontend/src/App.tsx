@@ -7,7 +7,7 @@ import DashBoard from "./DashBoard";
 function App() {
   return (
     <div className="App">
-      <MainLayout main={Main} setting={Setting} dashboard={DashBoard} / >
+      <MainLayout main={Main} setting={Setting} dashboard={DashBoard} />
     </div>
   );
 }

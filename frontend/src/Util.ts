@@ -1,4 +1,4 @@
-import {BACKEND_URL} from "./Constant";
+import { BACKEND_URL } from "./Constant";
 /*
 
 > Camera URL
@@ -9,5 +9,6 @@ import {BACKEND_URL} from "./Constant";
 
  */
 
- 
-export const CameraRTSPUrl = [...Array(6).keys()].map(v => `${BACKEND_URL}/camera_${v + 1}`);
+export const CameraRTSPUrl = [...Array(6).keys()].map(
+  (v) => `${BACKEND_URL}/camera_${v + 1}`
+);
