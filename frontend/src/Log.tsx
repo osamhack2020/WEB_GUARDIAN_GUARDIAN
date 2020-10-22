@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from "react";
+import React,{useState,useEffect,useRef} from "react";
 import {useSelector} from "react-redux";
 import { Card, Image } from "antd";
 import { Scrollbars } from "react-custom-scrollbars";
@@ -27,10 +27,15 @@ function LogItem({src,content,time} : ILogItem) {
 export default function Log() {
   const Data = useSelector((state : ISelect) => state.mainReducer.DetectLog);
   //const [Data,SetData] = useState<IDetectData[]>([])
- 
+  const ref = useRef<Scrollbars>(null)
+
+  useEffect(() => {
+    ref.current?.scrollToBottom()
+  },[])
+
   return (
     <div>
-      <Scrollbars style={{height:"100vh"}} autoHide>
+      <Scrollbars style={{height:"100vh"}} autoHide ref={ref}>
       {Data.map((v: IDetectData) => <LogItem src={v.thumbnail} content={v.content} time={v.time} / >)}
       </Scrollbars>
     </div>
