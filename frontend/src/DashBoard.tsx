@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState,useEffect} from "react";
 import {
   LineChart,
   Line,
@@ -9,52 +9,158 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-const data = [
-  {
-    name: "Page A",
-    uv: 4000,
-    pv: 2400,
-    amt: 2400,
-  },
-  {
-    name: "Page B",
-    uv: 3000,
-    pv: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Page C",
-    uv: 2000,
-    pv: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Page D",
-    uv: 2780,
-    pv: 3908,
-    amt: 2000,
-  },
-  {
-    name: "Page E",
-    uv: 1890,
-    pv: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Page F",
-    uv: 2390,
-    pv: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Page G",
-    uv: 3490,
-    pv: 4300,
-    amt: 2100,
-  },
-];
 
 function Chart() {
+  const [data,SetData] = useState<any>([
+    {
+    name:"00시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"01시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"02시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"03시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"04시",
+    Motion:10,
+    Person:5,
+    Car:5
+  },
+  {
+    name:"05시",
+    Motion:34,
+    Person:24,
+    Car:10
+  },
+  {
+    name:"06시",
+    Motion:23,
+    Person:11,
+    Car:12
+  },
+  {
+    name:"07시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"08시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"09시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"10시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"11시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"12시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"13시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"14시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"15시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"16시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"17시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"18시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"19시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"20시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"21시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"22시",
+    Motion:0,
+    Person:0,
+    Car:0
+  },
+  {
+    name:"23시",
+    Motion:0,
+    Person:0,
+    Car:0
+  }
+])
+
+  useEffect(()=>{
+   
+  },[])
   return (
     <div style={{width:'100%',height:'90vh'}}>
     <ResponsiveContainer>
@@ -69,16 +175,17 @@ function Chart() {
       >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
-        <YAxis />
+        <YAxis dy={100} />
         <Tooltip />
-        <Legend />
+        <Legend chartHeight={3}/>
         <Line
           type="monotone"
-          dataKey="pv"
-          stroke="#8884d8"
+          dataKey="Motion"
+          stroke="#82ca9d"
           activeDot={{ r: 8 }}
         />
-        <Line type="monotone" dataKey="uv" stroke="#82ca9d" />
+        <Line type="monotone" dataKey="Person" stroke="#ec6d59" />
+        <Line type="monotone" dataKey="Car" stroke="#FF8200" />
       </LineChart>
     </ResponsiveContainer>
     </div>
