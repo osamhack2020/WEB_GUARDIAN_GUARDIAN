@@ -23,6 +23,7 @@
     "axios": "^0.20.0",
     "immer": "^7.0.9",
     "immer-reducer": "^0.7.10",
+    "moment": "^2.29.1",
     "react": "^16.13.1",
     "react-beautiful-dnd": "^13.0.0",
     "react-custom-scrollbars": "^4.2.1",
