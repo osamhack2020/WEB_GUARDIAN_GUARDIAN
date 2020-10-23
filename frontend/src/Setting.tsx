@@ -213,9 +213,7 @@ export function RuningFooter() {
     (state: ISelect) => state.settingReducer.ConvexHullPos
   );
   const [WorkState, SetWorkState] = useState(StateTag.wait);
-  const PostPos = () => {
-    axios.post(`${BACKEND_URL}/SetDetectData`, ConvexHullPos);
-  };
+
   return (
     <Layout.Footer
       style={{ background: "white", borderTop: "1px solid rgb(206,206,206)" }}

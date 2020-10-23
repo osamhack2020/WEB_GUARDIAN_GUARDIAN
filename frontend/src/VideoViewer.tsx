@@ -16,7 +16,7 @@ export function VideoViewer({
       centered
       visible={visible}
       onCancel={onClose}
-      width={1000}
+      width={900}
       footer={null}
     >
       <VideoPlayer src={src} />
