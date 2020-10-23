@@ -29,7 +29,7 @@
 ### Infra
  - Docker
 
-### Machine-learnung
+### Machine-learning
  - Darknet Yolov4-tiny
  
 ## 설치 안내 (Installation Process)
