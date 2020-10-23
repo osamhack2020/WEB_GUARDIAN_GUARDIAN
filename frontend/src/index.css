@@ -11,6 +11,10 @@ body {
   
   text-align:center;
 }
+.carousel_dot li button{
+  height:10px
+  !important
+}
 .logo {
   width:72px;
   height: 36px;

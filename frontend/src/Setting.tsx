@@ -246,7 +246,7 @@ export default function Setting() {
             position: "relative",
             width: `${ScreenX}px`,
             height: `${ScreenY}px`,
-          }}>
+          }} dots={{className:"carousel_dot"}}>
             <DetectionAreaBox CameraIdx={0} />
             <DetectionAreaBox CameraIdx={1} />
             <DetectionAreaBox CameraIdx={2} />
