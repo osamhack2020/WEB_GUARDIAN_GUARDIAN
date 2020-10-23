@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import axios from "axios";
 import { BACKEND_URL } from "./Constant";
+import {IMongoChart} from "./Interface";
 
 async function GetChartData() {
   let now = new Date();
@@ -33,16 +34,26 @@ function Chart() {
       };
     })
   );
-
-  useEffect(() => {
-    GetChartData().then(res => SetData(res.data.map((v: any, i: any) => {
+  
+  const SetChart = useCallback((chartData : IMongoChart[]) => {
+    SetData(chartData.map((v : IMongoChart, i) => {
       return {
         name: `${i}시`,
         Motion: v.motion,
         Person: v.person,
         Car: v.car,
       };
-    })));
+    }))
+  },[data]);
+
+  useEffect(() => {
+    GetChartData().then(res => SetChart(res.data));
+    let chartTimer = setInterval(() => {
+      GetChartData().then(res => SetChart(res.data));
+    }, 60000)
+    return () => {
+      clearInterval(chartTimer)
+    }
   }, []);
   return (
     <div style={{ width: "100%", height: "90vh" }}>
