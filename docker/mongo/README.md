@@ -1,32 +1,48 @@
 ## Run
 ```sh
-# 첫 실행
-> docker run --name guardian_db -d \
- -v $PWD/db:/db
- -p 27017:27017 \
- -e MONGO_INITDB_ROOT_USERNAME=guardian \
- -e MONGO_INITDB_ROOT_PASSWORD={PASSWORD} \
- mongo:latest
-
-# 일반 실행
-> docker run -d -p 27017:27017 --name guardian_db -v $PWD/db:/db mongo:latest 
+# 실행
+> echo {MONGO_PASSWORD} > MONGO_PW
+> cat MONGO_PW
+> docker-compose up -d
 
 # 관리
-> docker exec -it guardian_db mongo
+> docker exec -it mongo_go_guardian_db_1 mongo admin -u guardian -p {MONGO_PASSWORD}
 ```
 ## mongod 명령어 
 ```sh
 # Init
 > db.createCollection("statistics")
-> db.statistics.insert({"name": "Motion", "count":0});
-> db.statistics.insert({"name": "Person", "count":0});
-> db.statistics.insert({"name": "Car", "count":0});
-
+> db.statistics.insert({"date":"20201023", time:[
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+]});
 # Delete
-> db.statistics.remove({"Motion": 0})
+> db.statistics.remove({"date": "20201023"})
 
 # Update
-> db.statistics.update({"name":"Motion"},{ $set: { count: 1 } } );
+> db.statistics.update({"date": "20201023"},{ $inc: { "time.23.Motion": 1 } } );
 
 # Confirm
 > db.statistics.find()
