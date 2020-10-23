@@ -59,16 +59,16 @@ func (M *Mongo) InsertDefaultData(date string) {
 	for i := 0; i < 24; i++ {
 		timeInitData = append(timeInitData,
 			bson.M{
-				"Motion": 0,
-				"Person": 0,
-				"Car":    0})
+				"motion": 0,
+				"person": 0,
+				"car":    0})
 	}
 	M.guardianDB.InsertOne(context.TODO(), bson.M{
 		"date": date,
 		"time": timeInitData})
 }
 
-// Update is Mongo "Motion","Person","Car" in Mongo DB Update
+// Update is Mongo "motion","person","car" in Mongo DB Update
 func (M *Mongo) Update(date string, hour int, event string) {
 	M.guardianDB.UpdateOne(context.TODO(), bson.D{
 		{"date", date}}, bson.D{
