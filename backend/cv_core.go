@@ -201,7 +201,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					ingTime := float32(time.Since(startTime) / time.Second)
 					if ingTime > 0 {
 						if !timeSeq && ingTime > 2.0 {
-							DB.ComposeUpdate("Motion")
+							DB.ComposeUpdate("motion")
 							fmt.Println("움직임 감지 2초")
 							timeSeq = true
 							// run YoloRoutine.

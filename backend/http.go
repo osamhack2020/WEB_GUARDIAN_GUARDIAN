@@ -9,6 +9,7 @@ import (
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
 	"github.com/labstack/echo"
+
 	"github.com/labstack/echo/middleware"
 )
 
@@ -34,6 +35,17 @@ func main() {
 	e.Any("/socket.io/", func(context echo.Context) error {
 		server.ServeHTTP(context.Response(), context.Request())
 		return nil
+	})
+
+	e.POST("/ChartData", func(c echo.Context) error {
+		var DataInfo map[string]string
+		c.Bind(&DataInfo)
+		fmt.Printf("POST /ChartData date : %s\n", DataInfo["date"])
+		if data, ok := DB.Find(DataInfo["date"]); ok {
+			return c.JSON(http.StatusOK, data)
+		}
+		return c.JSON(http.StatusOK, "fail")
+
 	})
 
 	e.POST("/SetDetectPoint", func(c echo.Context) error {

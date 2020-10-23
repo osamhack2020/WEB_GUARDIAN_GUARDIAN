@@ -36,7 +36,7 @@ func (M *Mongo) Init() {
 }
 
 // Find Use hourData["Motion"], hourData["Person"], hourData["Car"]
-func (M *Mongo) Find(date string, hour int) (bson.M, bool) {
+func (M *Mongo) Find(date string) (bson.A, bool) {
 	cursor, _ := M.guardianDB.Find(context.TODO(), bson.D{
 		{"date", date},
 	})
@@ -47,8 +47,7 @@ func (M *Mongo) Find(date string, hour int) (bson.M, bool) {
 			return nil, false
 		}
 		data := elem["time"].(bson.A)
-		hourData := data[hour].(bson.M)
-		return hourData, true
+		return data, true
 	}
 	return nil, false
 }
@@ -82,7 +81,7 @@ func (M *Mongo) ComposeUpdate(event string) {
 	Now := time.Now()
 	NowDate := Now.Format("20060102")
 	NowHour, _ := strconv.Atoi(Now.Format("15"))
-	if _, ok := M.Find(NowDate, NowHour); !ok {
+	if _, ok := M.Find(NowDate); !ok {
 		M.InsertDefaultData(NowDate)
 	}
 	M.Update(NowDate, NowHour, event)
