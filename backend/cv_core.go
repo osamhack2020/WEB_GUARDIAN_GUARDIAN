@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"image"
 	"log"
@@ -61,9 +60,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	defer func() { // 함수 끝나면 실행
 		fmt.Println("YOLO Routine End.")
 		if !ResultMotionLine.Empty() {
-			buf, _ := gocv.IMEncode(".jpg", ResultMotionLine)
-			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-			Server.BroadcastToAll("detect", string(b))
+			SendThumbLog(Server, ResultMotionLine, strings.Join(detectClass, ","), NowTime)
 		}
 
 		writer.Close()
@@ -88,9 +85,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 					DB.ComposeUpdate(class)
 				}
 				if len(detectClass) > 0 && !YoloData.Empty() {
-					buf, _ := gocv.IMEncode(".jpg", YoloData)
-					b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-					Server.BroadcastToAll("detect", string(b))
+					SendThumbLog(Server, YoloData, strings.Join(detectClass, ","), NowTime)
 					YoloCheck = true
 				}
 				FrameSeq = 0
