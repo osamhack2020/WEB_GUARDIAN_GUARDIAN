@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"strconv"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -74,4 +76,14 @@ func (M *Mongo) Update(date string, hour int, event string) {
 			{fmt.Sprintf("time.%d.%s", hour, event), 1},
 		}},
 	})
+}
+
+func (M *Mongo) ComposeUpdate(event string) {
+	Now := time.Now()
+	NowDate := Now.Format("20060102")
+	NowHour, _ := strconv.Atoi(Now.Format("15"))
+	if _, ok := M.Find(NowDate, NowHour); !ok {
+		M.InsertDefaultData(NowDate)
+	}
+	M.Update(NowDate, NowHour, event)
 }

@@ -12,8 +12,10 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-func main() {
+var DB = new(Mongo)
 
+func main() {
+	DB.Init()
 	// Socket.io Server
 	server := gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
