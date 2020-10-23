@@ -15,6 +15,11 @@ export interface ILogItem {
   >;
 }
 
+export interface IMongoChart{
+  motion: number,
+  person: number,
+  car: number,
+}
 export interface IClickPos {
   X: number;
   Y: number;

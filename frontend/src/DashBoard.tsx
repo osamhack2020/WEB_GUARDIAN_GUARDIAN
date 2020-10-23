@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -9,161 +9,68 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { DatePicker } from "antd";
+import axios from "axios";
+import { BACKEND_URL } from "./Constant";
+import { IMongoChart } from "./Interface";
+import moment from 'moment';
+
+async function GetChartData(date: string) {
+  return await axios.post(`${BACKEND_URL}/ChartData`, { date })
+}
+const defaultChartData = () : any => 
+  [...Array(23).keys()].map((v) => {
+    return {
+      name: `${v}시`,
+      Motion: 0,
+      Person: 0,
+      Car: 0,
+    };
+  });
 
 function Chart() {
-  const [data, SetData] = useState<any>([
-    {
-      name: "00시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "01시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "02시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "03시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "04시",
-      Motion: 10,
-      Person: 5,
-      Car: 5,
-    },
-    {
-      name: "05시",
-      Motion: 34,
-      Person: 24,
-      Car: 10,
-    },
-    {
-      name: "06시",
-      Motion: 23,
-      Person: 11,
-      Car: 12,
-    },
-    {
-      name: "07시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "08시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "09시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "10시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "11시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "12시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "13시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "14시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "15시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "16시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "17시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "18시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "19시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "20시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "21시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "22시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-    {
-      name: "23시",
-      Motion: 0,
-      Person: 0,
-      Car: 0,
-    },
-  ]);
+  const [date, SetDate] = useState<string>(moment().format("YYYYMMDD"))
+  const [Chart, SetData] = useState<any>(defaultChartData());
 
-  useEffect(() => {}, []);
+  const SetChart = useCallback((chartData) => {
+    SetData(chartData.map((v: IMongoChart, i : number) => {
+      return {
+        name: `${i}시`,
+        Motion: v.motion,
+        Person: v.person,
+        Car: v.car,
+      };
+    }))
+  }, [Chart]);
+
+  useEffect(() => {
+    GetChartData(date).then(res => {
+      if (res.data === "fail") {
+        SetData(defaultChartData())
+      }
+      else {
+        SetChart(res.data)
+      }
+    });
+    let chartTimer = setInterval(() => {
+      GetChartData(date).then(res => {
+        if (res.data === "fail") {
+          SetData(defaultChartData())
+        }
+        else {
+          SetChart(res.data)
+        }
+      });
+    }, 60000)
+    return () => {
+      clearInterval(chartTimer)
+    }
+  }, [date]);
   return (
     <div style={{ width: "100%", height: "90vh" }}>
       <ResponsiveContainer>
         <LineChart
-          data={data}
+          data={Chart}
           margin={{
             top: 5,
             right: 30,
@@ -186,6 +93,8 @@ function Chart() {
           <Line type="monotone" dataKey="Car" stroke="#FF8200" />
         </LineChart>
       </ResponsiveContainer>
+
+      <DatePicker allowClear={false} defaultValue={moment()} onChange={(m: moment.Moment | null, dateString: string) => SetDate(dateString.replace(/-/g, ""))} />
     </div>
   );
 }
