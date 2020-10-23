@@ -9,6 +9,7 @@ import {
   Slider,
   Layout,
   Tag,
+  Carousel,
 } from "antd";
 import {
   LoadingOutlined,
@@ -47,9 +48,10 @@ function drawLine(ctx: CanvasContext, start: IClickPos, end: IClickPos) {
   ctx?.stroke();
 }
 interface IDetectionAreaBox {
-  DefaultCameraIdx: number;
+  CameraIdx: number;
 }
-function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
+
+function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
   const dispatch = useDispatch();
   const ConvexHullPos = useSelector(
     (state: ISelect) => state.settingReducer.ConvexHullPos
@@ -58,7 +60,6 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     Array.from(Array(6), () => new Array())
   );
   const [Spinning, SetSpinning] = useState<boolean>(true);
-  const [CameraIdx, SetCamera] = useState<number>(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -82,19 +83,6 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
     SetPos(Pos);
   };
 
-  const menu = useCallback(
-    // 화면 우클릭 카메라 설정
-    () => (
-      <Menu>
-        {[...Array(6).keys()].map((v) => (
-          <Menu.Item key={v} onClick={() => SetCamera(v)}>
-            Camera {v + 1}
-          </Menu.Item>
-        ))}
-      </Menu>
-    ),
-    []
-  );
   useEffect(() => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     canvas?.addEventListener("click", onCanvasClick);
@@ -141,43 +129,41 @@ function DetectionAreaBox({ DefaultCameraIdx }: IDetectionAreaBox) {
 
   return (
     <div>
-      <Dropdown overlay={menu} trigger={["contextMenu"]}>
-        <Spin
-          tip="Camera Loading"
+      <Spin
+        tip="Camera Loading"
+        style={{
+          color: "#607D8B",
+          position: "absolute",
+          width: `${ScreenX}px`,
+          height: `${ScreenY}px`,
+        }}
+        spinning={Spinning}
+        indicator={
+          <LoadingOutlined style={{ fontSize: 24, color: "#607D8B" }} spin />
+        }
+      >
+        <img
+          onLoad={() => SetSpinning(false)}
+          onError={(e) => {
+            e.currentTarget.src = "";
+            e.currentTarget.src = CameraRTSPUrl[CameraIdx];
+          }}
           style={{
-            color: "#607D8B",
-            position: "absolute",
+            position: "relative",
+            left: 0,
+            top: 0,
             width: `${ScreenX}px`,
             height: `${ScreenY}px`,
           }}
-          spinning={Spinning}
-          indicator={
-            <LoadingOutlined style={{ fontSize: 24, color: "#607D8B" }} spin />
-          }
-        >
-          <img
-            onLoad={() => SetSpinning(false)}
-            onError={(e) => {
-              e.currentTarget.src = "";
-              e.currentTarget.src = CameraRTSPUrl[CameraIdx];
-            }}
-            style={{
-              position: "relative",
-              left: 0,
-              top: 0,
-              width: `${ScreenX}px`,
-              height: `${ScreenY}px`,
-            }}
-            src={CameraRTSPUrl[CameraIdx]}
-          />
-          <canvas
-            width={`${ScreenX}`}
-            height={`${ScreenY}`}
-            ref={canvasRef}
-            style={{ cursor: "pointer", position: "absolute", left: 0, top: 0 }}
-          />
-        </Spin>
-      </Dropdown>
+          src={CameraRTSPUrl[CameraIdx]}
+        />
+        <canvas
+          width={`${ScreenX}`}
+          height={`${ScreenY}`}
+          ref={canvasRef}
+          style={{ cursor: "pointer", position: "absolute", left: 0, top: 0,zIndex:999 }}
+        />
+      </Spin>
       <Button type="primary" onClick={onClearBtn} style={{ width: "100%" }}>
         영역 설정 초기화
       </Button>
@@ -256,7 +242,18 @@ export default function Setting() {
           sm={ScreenY}
           style={{ position: "relative", background: "#C8D2D7" }}
         >
-          <DetectionAreaBox DefaultCameraIdx={0} />
+          <Carousel effect="fade" style={{
+            position: "relative",
+            width: `${ScreenX}px`,
+            height: `${ScreenY}px`,
+          }}>
+            <DetectionAreaBox CameraIdx={0} />
+            <DetectionAreaBox CameraIdx={1} />
+            <DetectionAreaBox CameraIdx={2} />
+            <DetectionAreaBox CameraIdx={3} />
+            <DetectionAreaBox CameraIdx={4} />
+            <DetectionAreaBox CameraIdx={5} />
+          </Carousel>
         </Col>
         <Col flex={1}>
           <span>
