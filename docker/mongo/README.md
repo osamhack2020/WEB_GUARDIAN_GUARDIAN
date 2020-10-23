@@ -1,34 +1,33 @@
-# docker mongo
-> docker run --name {container_name} {image}
+## Run
+```sh
+# 첫 실행
+> docker run --name guardian_db -d \
+ -v $PWD/db:/db
+ -p 27017:27017 \
+ -e MONGO_INITDB_ROOT_USERNAME=guardian \
+ -e MONGO_INITDB_ROOT_PASSWORD={PASSWORD} \
+ mongo:latest
 
-ex) 
-> docker run --name mongo mongo-basic
+# 일반 실행
+> docker run -d -p 27017:27017 --name guardian_db -v $PWD/db:/db mongo:latest 
 
-# docker mongo initialize
-> docker run -d --name {container_name} \
-> -e MONGO_INITDB_ROOT_USERNAME={admin} \
-> -e MONGO_INITDB_ROOT_PASSWORD={password} \
-> image
+# 관리
+> docker exec -it guardian_db mongo
+```
+## mongod 명령어 
+```sh
+# Init
+> db.createCollection("statistics")
+> db.statistics.insert({"name": "Motion", "count":0});
+> db.statistics.insert({"name": "Person", "count":0});
+> db.statistics.insert({"name": "Car", "count":0});
 
-# docker mongo login 
-> docker exec -it mongodb mongo -u {admin} -p {password} --authenticationDatabase {database}
-> \
-> docker exec -it mongodb mongo -u {admin} -p {password} --authenticationDatabase admin
+# Delete
+> db.statistics.remove({"Motion": 0})
 
-ex)
-> mongo -u root -p GUARDIAN --authenticationDatabase admin
+# Update
+> db.statistics.update({"name":"Motion"},{ $set: { count: 1 } } );
 
-# connect server
- Server also connects network.
-> docker network create --driver {network_type} {network_name} \
-> \
-> docker run -i -t --name {container_name} \     
-> --net {network_name} \                                  
-> image                         
-
-ex)
-> docker network create --driver bridge node-mongo-network \
-> \
-> docker run -i -t --name mongo \
-> --net node-mongo-network \
-> mongo-basic
+# Confirm
+> db.statistics.find()
+```
