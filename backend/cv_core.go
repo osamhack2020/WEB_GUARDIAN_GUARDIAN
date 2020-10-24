@@ -87,7 +87,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 				}
 				if len(detectClass) > 0 && !YoloData.Empty() {
 					SendThumbLog(Server, YoloData, strings.Join(detectClass, ","), NowTime)
-					gocv.IMWrite(FileName+"_thumb.jpg", ResultMotionLine)
+					gocv.IMWrite(FileName+"_thumb.jpg", YoloData)
 					YoloCheck = true
 				}
 				FrameSeq = 0
