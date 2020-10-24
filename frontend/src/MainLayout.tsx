@@ -76,6 +76,8 @@ export default function MainLayout({
         Content += `사람 ${personCnt}명 식별`; 
       if (carCnt !== 0)
         Content += `, 차 ${carCnt}대 식별`; 
+      if (personCnt === 0 && carCnt === 0)
+        Content = DetectData.content;
       dispatch(
         MainActions.addDetectLog(
           DetectData.thumbnail,

@@ -4,9 +4,7 @@ import {
   Spin,
   Row,
   Col,
-  Dropdown,
-  Menu,
-  Slider,
+  message,
   Layout,
   Tag,
   Carousel,
@@ -276,7 +274,7 @@ export default function Setting() {
             position: "relative",
             width: `${ScreenSize.X}px`,
             height: `${ScreenSize.Y}px`,
-          }} dots={{className:"carousel_dot"}}>
+          }} dots={{className:"carousel_dot"}} onSwipe={()=>message.info('첫번째 카메라를 설정합니다.')}>
             <DetectionAreaBox CameraIdx={0} />
             <DetectionAreaBox CameraIdx={1} />
             <DetectionAreaBox CameraIdx={2} />
