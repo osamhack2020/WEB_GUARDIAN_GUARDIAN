@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { Modal, Table, Button } from "antd";
 import produce from "immer";
 import VideoPlayer from "./VideoPlayer";
-
+import { GetPostData } from "./Util";
+import { BACKEND_URL } from "./Constant";
 const columns = [
   {
     title: "Thumbnail-Detect",
@@ -42,28 +43,34 @@ const columns = [
 export default function VideoListViewer({
   visible,
   onClose,
+  date
 }: {
   visible: boolean;
   onClose: (e: React.MouseEvent<HTMLElement>) => void;
+  date: string;
 }) {
   const [Data, SetData] = useState<any[]>([]);
   const [VideoView, SetVideo] = useState<string>("");
   useEffect(() => {
-    SetData(
-      produce(Data, (draft) => {
-        for (let i = 0; i < 70; i++) {
-          draft.push({
-            key: i,
-            Thumb: "",
-            Thumb2: "",
-            SetVideo:SetVideo,
-            Date: "2020-10-24 13:34:34",
-            View: "사람 2명 식별",
-          });
+    if (visible) {
+      GetPostData(date, "GetVideoFile").then((res: any) => {
+        if (res.data.length > 0) {
+          let File: string[] = res.data.map((v: string) => v.slice(0, -4));
+          SetData(File.map((v, i) => {
+            let DateString = v.split("_");
+            DateString[1] = DateString[1].slice(0,2)+":"+DateString[1].slice(2,4)+":"+DateString[1].slice(4,6);
+            return {
+              key: i,
+              Thumb: `${BACKEND_URL}/detect_video/${v}_thumb.jpg`,
+              Thumb2: `${BACKEND_URL}/detect_video/${v}_thumb2.jpg`,
+              SetVideo: SetVideo,
+              Date: DateString.join(" "),
+            }
+          }))
         }
-      })
-    );
-  }, []);
+      });
+    }
+  }, [visible])
 
   return (
     <Modal
@@ -83,8 +90,8 @@ export default function VideoListViewer({
           scroll={{ y: 500 }}
         />
       ) : (
-        <Button>A</Button>
-      )}
+          <Button>A</Button>
+        )}
     </Modal>
   );
 }

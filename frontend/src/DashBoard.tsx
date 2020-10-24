@@ -9,16 +9,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { DatePicker, Modal } from "antd";
-import axios from "axios";
-import { BACKEND_URL } from "./Constant";
+import { DatePicker } from "antd";
+import {GetPostData} from "./Util";
 import { IMongoChart } from "./Interface";
 import VideoListViewer from "./VideoListViewer"
 import moment from 'moment';
-//ChartData
-async function GetPostData(date: string, backurl: string) {
-  return await axios.post(`${BACKEND_URL}/${backurl}`, { date })
-}
+
+
 const defaultChartData = (): any =>
   [...Array(23).keys()].map((v) => {
     return {
@@ -30,9 +27,10 @@ const defaultChartData = (): any =>
   });
 
 function Chart() {
-  const [date, SetDate] = useState<string>(moment().format("YYYYMMDD"))
+  const [date, SetDate] = useState<string>(moment().format("YYYYMMDD"));
+  const [hour, SetHour] = useState<string>("1")
   const [Chart, SetData] = useState<any>(defaultChartData());
-  const [show, SetShow] = useState<boolean>(false)
+  const [show, SetShow] = useState<boolean>(false);
   const SetChart = useCallback((chartData) => {
     SetData(chartData.map((v: IMongoChart, i: number) => {
       return {
@@ -53,10 +51,6 @@ function Chart() {
         SetChart(res.data)
       }
     });
-    let VideoData = date.slice(0, 4) + "-" + date.slice(4, 6) + "-" + date.slice(6, 8) + "_" + "14"
-    GetPostData(VideoData, "GetVideoFile").then(res => {
-      console.log(res,VideoData)
-    });
     let chartTimer = setInterval(() => {
       GetPostData(date, "ChartData").then(res => {
         if (res.data === "fail") {
@@ -71,6 +65,7 @@ function Chart() {
       clearInterval(chartTimer)
     }
   }, [date]);
+
   return (
     <div style={{ width: "100%", height: "90vh" }}>
       <ResponsiveContainer>
@@ -93,15 +88,15 @@ function Chart() {
             type="monotone"
             dataKey="Motion"
             stroke="#82ca9d"
-            activeDot={{ onClick: () => { SetShow(true) } }}
+            activeDot={{ onClick: (e :any) => { SetHour(e.payload.name.slice(0,-1));SetShow(true) } }}
           />
-          <Line type="monotone" dataKey="Person" stroke="#ec6d59" activeDot={{ onClick: () => { SetShow(true) } }} />
-          <Line type="monotone" dataKey="Car" stroke="#FF8200" activeDot={{ onClick: () => { SetShow(true) } }} />
+          <Line type="monotone" dataKey="Person" stroke="#ec6d59" activeDot={{ onClick: (e :any) => { SetHour(e.payload.name.slice(0,-1));SetShow(true) } }} />
+          <Line type="monotone" dataKey="Car" stroke="#FF8200" activeDot={{ onClick: (e :any) => { SetHour(e.payload.name.slice(0,-1));SetShow(true) } }} />
         </LineChart>
       </ResponsiveContainer>
 
       <DatePicker allowClear={false} defaultValue={moment()} onChange={(m: moment.Moment | null, dateString: string) => SetDate(dateString.replace(/-/g, ""))} />
-      <VideoListViewer visible={show} onClose={() => SetShow(false)} />
+      <VideoListViewer date={date.slice(0, 4) + "-" + date.slice(4, 6) + "-" + date.slice(6, 8) + "_" + hour} visible={show} onClose={() => SetShow(false)} />
     </div>
   );
 }
