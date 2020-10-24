@@ -10,6 +10,8 @@ import {
   Layout,
   Tag,
   Carousel,
+  notification,
+  
 } from "antd";
 import {
   LoadingOutlined,
@@ -173,6 +175,13 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
     </div>
   );
 }
+const openNotification = (message : string,description : string, icon : React.ReactNode) => {
+  notification.open({
+    message,
+    description,
+    icon,
+  });
+};
 
 const StateTag = {
   success: (
@@ -208,18 +217,21 @@ export function RuningFooter() {
 
   return (
     <Layout.Footer
-      style={{ background: "white", borderTop: "1px solid rgb(206,206,206)" }}
+      style={{ background: "white", borderTop: "1px solid rgb(206,206,206)",textAlign:"right" }}
     >
+      {WorkState}
       <Button
         type="primary"
         onClick={() => {
           SetWorkState(StateTag.processing); // 임시 상태 테스트
+          openNotification("감지 영역이 설정되었습니다.","곧 감시가 시작됩니다.",<SyncOutlined spin  style={{ color: '#108ee9' }} />);
           setTimeout(() => {
             SetWorkState(StateTag.success);
             console.log({
               ViewSize: { X: ScreenSize.X, Y: ScreenSize.Y },
               DetectPoint: ConvexHullPos,
             });
+            
             axios
               .post(`${BACKEND_URL}/SetDetectPoint`, {
                 ViewSize: { X: ScreenSize.X, Y: ScreenSize.Y },
@@ -227,16 +239,15 @@ export function RuningFooter() {
               })
               .then(function (response) {
                 console.log(response);
+                openNotification("감시가 시작되었습니다.","이제부터 경계근무가 활성화 됩니다.",<CheckCircleOutlined style={{ color: '#97dc76' }} />);
               });
           }, 1000);
         }}
       >
         감지시작
       </Button>
-      <Button type="primary" disabled>
-        감지중지
-      </Button>
-      {WorkState}
+
+      
     </Layout.Footer>
   );
 }
