@@ -6,11 +6,12 @@ import {
   composeReducers,
 } from "immer-reducer";
 import { CameraRTSPUrl } from "./Util";
-import { IClickPos, IDetectData } from "./Interface";
+import { IClickPos, IDetectData,IMp3 } from "./Interface";
 import { SwapLeftOutlined } from "@ant-design/icons";
 export interface IMainState {
   ViewURL: string[];
   DetectLog: IDetectData[];
+  MP3 : IMp3;
 }
 
 export interface ISettingState {
@@ -23,6 +24,11 @@ export interface ISettingState {
 const MainState: IMainState = {
   ViewURL: CameraRTSPUrl,
   DetectLog: [],
+  MP3: {
+    Person: new Audio(process.env.PUBLIC_URL+"/person.mp3"),
+    PersonAndCar: new Audio(process.env.PUBLIC_URL+"/personandcar.mp3"),
+    Car: new Audio(process.env.PUBLIC_URL+"/car.mp3")
+  }
 };
 
 // immer-Reducer
