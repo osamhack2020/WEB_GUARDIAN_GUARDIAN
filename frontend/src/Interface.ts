@@ -14,7 +14,11 @@ export interface ILogItem {
     }>
   >;
 }
-
+export interface IMp3{
+  Person: HTMLAudioElement,
+  PersonAndCar: HTMLAudioElement,
+  Car: HTMLAudioElement
+}
 export interface IMongoChart{
   motion: number,
   person: number,

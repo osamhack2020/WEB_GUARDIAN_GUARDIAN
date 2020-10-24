@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { Spin, Row, Col } from "antd";
 import "./index.css";
 import { CameraRTSPUrl } from "./Util";
@@ -19,7 +19,6 @@ interface ICamera {
   CameraURL: string;
   height: string;
 }
-
 function Camera({ CameraURL, height }: ICamera) {
   // Spinner & Auto Reload
   const dispatch = useDispatch();

@@ -12,9 +12,9 @@ import io from "socket.io-client";
 import Log from "./Log";
 import "./index.css";
 import { BACKEND_URL } from "./Constant";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { MainActions } from "./Reducer";
-
+import { ISelect } from "./Interface"
 const { Content, Footer, Sider } = Layout;
 const socket = io(`${BACKEND_URL}/`, { transports: ["websocket"] });
 
@@ -39,6 +39,9 @@ function Logo() {
   );
 }
 
+function DetectCount(classes: string, _class: string) {
+  return classes.split(",").filter((v: string) => v === _class).length
+}
 export default function MainLayout({
   main,
   setting,
@@ -48,6 +51,9 @@ export default function MainLayout({
   setting: React.FunctionComponent;
   dashboard: React.FunctionComponent;
 }) {
+  const MP3 = useSelector(
+    (state: ISelect) => state.mainReducer.MP3
+  );
   const [LeftBar, SetLeftBar] = useState<boolean>(false);
   const dispatch = useDispatch();
   const onLeftBar = (collapsed: boolean) => {
@@ -65,10 +71,32 @@ export default function MainLayout({
     socket.on("detect", function (res: string) {
       //  console.log(res)
       let DetectData = JSON.parse(res);
+      let personCnt = DetectCount(DetectData.content, "person");
+      let carCnt = DetectCount(DetectData.content, "car");
+      let Content = ""
+      if (personCnt !== 0)
+      {
+        Content += `사람 ${personCnt}명 식별`;
+        if (carCnt !== 0)
+        {
+          Content += `, 차 ${carCnt}대 식별`;
+          MP3.PersonAndCar.play();
+        }
+        else{
+          MP3.Person.play();
+        }
+      }
+      if (carCnt !== 0)
+      {
+          Content += `차 ${carCnt}대 식별`;
+          MP3.Car.play();
+      }
+      if (personCnt === 0 && carCnt === 0)
+        Content = DetectData.content;
       dispatch(
         MainActions.addDetectLog(
           DetectData.thumbnail,
-          DetectData.content + " 식별",
+          Content,
           DetectData.time
         )
       );
@@ -98,11 +126,11 @@ export default function MainLayout({
                 style={
                   LeftBar
                     ? {
-                        paddingLeft: "10px",
-                        height: "70px",
-                        cursor: "default",
-                        opacity: 1.0,
-                      }
+                      paddingLeft: "10px",
+                      height: "70px",
+                      cursor: "default",
+                      opacity: 1.0,
+                    }
                     : { height: "70px", cursor: "default", opacity: 1.0 }
                 }
                 icon={<Logo />}

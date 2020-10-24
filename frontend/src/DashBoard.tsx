@@ -10,15 +10,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { DatePicker } from "antd";
-import axios from "axios";
-import { BACKEND_URL } from "./Constant";
+import {GetPostData} from "./Util";
 import { IMongoChart } from "./Interface";
+import VideoListViewer from "./VideoListViewer"
 import moment from 'moment';
 
-async function GetChartData(date: string) {
-  return await axios.post(`${BACKEND_URL}/ChartData`, { date })
-}
-const defaultChartData = () : any => 
+
+const defaultChartData = (): any =>
   [...Array(23).keys()].map((v) => {
     return {
       name: `${v}시`,
@@ -29,11 +27,12 @@ const defaultChartData = () : any =>
   });
 
 function Chart() {
-  const [date, SetDate] = useState<string>(moment().format("YYYYMMDD"))
+  const [date, SetDate] = useState<string>(moment().format("YYYYMMDD"));
+  const [hour, SetHour] = useState<string>("1")
   const [Chart, SetData] = useState<any>(defaultChartData());
-
+  const [show, SetShow] = useState<boolean>(false);
   const SetChart = useCallback((chartData) => {
-    SetData(chartData.map((v: IMongoChart, i : number) => {
+    SetData(chartData.map((v: IMongoChart, i: number) => {
       return {
         name: `${i}시`,
         Motion: v.motion,
@@ -44,7 +43,7 @@ function Chart() {
   }, [Chart]);
 
   useEffect(() => {
-    GetChartData(date).then(res => {
+    GetPostData(date, "ChartData").then(res => {
       if (res.data === "fail") {
         SetData(defaultChartData())
       }
@@ -53,7 +52,7 @@ function Chart() {
       }
     });
     let chartTimer = setInterval(() => {
-      GetChartData(date).then(res => {
+      GetPostData(date, "ChartData").then(res => {
         if (res.data === "fail") {
           SetData(defaultChartData())
         }
@@ -66,6 +65,7 @@ function Chart() {
       clearInterval(chartTimer)
     }
   }, [date]);
+
   return (
     <div style={{ width: "100%", height: "90vh" }}>
       <ResponsiveContainer>
@@ -84,20 +84,23 @@ function Chart() {
           <Tooltip />
           <Legend chartHeight={3} />
           <Line
+            onClick={() => alert('')}
             type="monotone"
             dataKey="Motion"
             stroke="#82ca9d"
-            activeDot={{ r: 8 }}
+            activeDot={{ onClick: (e :any) => { SetHour(e.payload.name.slice(0,-1));SetShow(true) } }}
           />
-          <Line type="monotone" dataKey="Person" stroke="#ec6d59" />
-          <Line type="monotone" dataKey="Car" stroke="#FF8200" />
+          <Line type="monotone" dataKey="Person" stroke="#ec6d59" activeDot={{ onClick: (e :any) => { SetHour(e.payload.name.slice(0,-1));SetShow(true) } }} />
+          <Line type="monotone" dataKey="Car" stroke="#FF8200" activeDot={{ onClick: (e :any) => { SetHour(e.payload.name.slice(0,-1));SetShow(true) } }} />
         </LineChart>
       </ResponsiveContainer>
 
       <DatePicker allowClear={false} defaultValue={moment()} onChange={(m: moment.Moment | null, dateString: string) => SetDate(dateString.replace(/-/g, ""))} />
+      <VideoListViewer date={date.slice(0, 4) + "-" + date.slice(4, 6) + "-" + date.slice(6, 8) + "_" + hour} visible={show} onClose={() => SetShow(false)} />
     </div>
   );
 }
 export default function DashBoard() {
   return <Chart />;
 }
+

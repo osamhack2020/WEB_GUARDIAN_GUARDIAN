@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import MainLayout from "./MainLayout";
 import Main from "./Main";
 import Setting from "./Setting";

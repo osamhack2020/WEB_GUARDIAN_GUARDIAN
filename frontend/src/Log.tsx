@@ -4,9 +4,9 @@ import { Card, Image } from "antd";
 import { Scrollbars } from "react-custom-scrollbars";
 import { ILogItem, IDetectData, ISelect } from "./Interface";
 import { VideoCameraOutlined } from "@ant-design/icons";
-import { VideoViewer } from "./VideoViewer";
 import { produce } from "immer";
 import { BACKEND_URL } from "./Constant";
+import VideoViewer from "./VideoViewer";
 const { Meta } = Card;
 
 function LogItem({ src, content, time, state, onState }: ILogItem) {

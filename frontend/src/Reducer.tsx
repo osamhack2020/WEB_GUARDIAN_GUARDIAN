@@ -6,22 +6,29 @@ import {
   composeReducers,
 } from "immer-reducer";
 import { CameraRTSPUrl } from "./Util";
-import { IClickPos, IDetectData } from "./Interface";
+import { IClickPos, IDetectData,IMp3 } from "./Interface";
 import { SwapLeftOutlined } from "@ant-design/icons";
 export interface IMainState {
   ViewURL: string[];
   DetectLog: IDetectData[];
+  MP3 : IMp3;
 }
 
 export interface ISettingState {
   UseCamera: string[];
   ConvexHullPos: IClickPos[][];
+  Screen: IClickPos;
 }
 
 // State Init
 const MainState: IMainState = {
   ViewURL: CameraRTSPUrl,
   DetectLog: [],
+  MP3: {
+    Person: new Audio(process.env.PUBLIC_URL+"/person.mp3"),
+    PersonAndCar: new Audio(process.env.PUBLIC_URL+"/personandcar.mp3"),
+    Car: new Audio(process.env.PUBLIC_URL+"/car.mp3")
+  }
 };
 
 // immer-Reducer
@@ -29,7 +36,7 @@ class MainReducer extends ImmerReducer<IMainState> {
   addDetectLog(thumbnail: string, content: string, time: string) {
     this.draftState.DetectLog.push({
       thumbnail: `data:image/jpeg;base64,${thumbnail}`,
-      content: content + " 식별",
+      content: content,
       time: time,
     });
   }
@@ -43,16 +50,21 @@ class MainReducer extends ImmerReducer<IMainState> {
 const SettingState: ISettingState = {
   UseCamera: [],
   ConvexHullPos: Array.from(Array(6), () => new Array()),
+  Screen: {X:854,Y:480},
 };
 class SettingReducer extends ImmerReducer<ISettingState> {
   SetConvexHullPos(cameraIdx: number, Pos: IClickPos[]) {
     this.draftState.ConvexHullPos[cameraIdx] = Pos;
   }
+  SetScreenSize(width: number,height: number) {
+    this.draftState.Screen.X = width;
+    this.draftState.Screen.Y = height;
+  }
 }
 
 // Export (Store) and (Function for Dispatch)
 export const MainActions = createActionCreators(MainReducer);
-export const SettinActions = createActionCreators(SettingReducer);
+export const SettingActions = createActionCreators(SettingReducer);
 
 const mainReducer = createReducerFunction(MainReducer, MainState);
 const settingReducer = createReducerFunction(SettingReducer, SettingState);
