@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
@@ -35,6 +37,20 @@ func main() {
 	e.Any("/socket.io/", func(context echo.Context) error {
 		server.ServeHTTP(context.Response(), context.Request())
 		return nil
+	})
+
+	e.POST("/GetVideoFile", func(c echo.Context) error {
+		var DataInfo map[string]string
+		c.Bind(&DataInfo)
+		fmt.Printf("POST /GetVideoFile date : %s\n", DataInfo["date"])
+		files, _ := ioutil.ReadDir("video")
+		filterFiles := []string{}
+		for _, file := range files {
+			if strings.Contains(file.Name(), DataInfo["date"]) {
+				filterFiles = append(filterFiles, file.Name())
+			}
+		}
+		return c.JSON(http.StatusOK, filterFiles)
 	})
 
 	e.POST("/ChartData", func(c echo.Context) error {
