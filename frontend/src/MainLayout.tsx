@@ -39,6 +39,10 @@ function Logo() {
   );
 }
 
+function DetectCount(classes : string,_class : string)
+{
+  return classes.split(",").filter((v : string) => v === _class).length
+}
 export default function MainLayout({
   main,
   setting,
@@ -65,10 +69,21 @@ export default function MainLayout({
     socket.on("detect", function (res: string) {
       //  console.log(res)
       let DetectData = JSON.parse(res);
+      let personCnt = DetectCount(DetectData.content,"person");
+      let carCnt = DetectCount(DetectData.content,"car");
+      let Content = ""
+      if (personCnt !== 0)
+      {
+        Content += `사람 ${personCnt}명 식별`; 
+      }
+      if (carCnt !== 0)
+      {
+        Content += `, 차 ${carCnt}대 식별`; 
+      }
       dispatch(
         MainActions.addDetectLog(
           DetectData.thumbnail,
-          DetectData.content + " 식별",
+          Content,
           DetectData.time
         )
       );

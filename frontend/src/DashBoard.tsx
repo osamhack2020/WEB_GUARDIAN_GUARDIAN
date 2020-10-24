@@ -85,13 +85,14 @@ function Chart() {
           <Tooltip />
           <Legend chartHeight={3}/>
           <Line
+            onClick={()=>alert('')}
             type="monotone"
             dataKey="Motion"
             stroke="#82ca9d"
-            activeDot={{ onClick: (event :any, payload :any)=> {SetShow(true)} }}
+            activeDot={{ onClick: ()=> {SetShow(true)} }}
           />
-          <Line type="monotone" dataKey="Person" stroke="#ec6d59"  activeDot={{ onClick: (event :any, payload :any)=> {SetShow(true)} }}/>
-          <Line type="monotone" dataKey="Car" stroke="#FF8200"  activeDot={{onClick: (event :any, payload :any)=> {SetShow(true)} }}/>
+          <Line type="monotone" dataKey="Person" stroke="#ec6d59"  activeDot={{ onClick: ()=> {SetShow(true)} }}/>
+          <Line type="monotone" dataKey="Car" stroke="#FF8200"  activeDot={{onClick: ()=> {SetShow(true)} }}/>
         </LineChart>
       </ResponsiveContainer>
 
