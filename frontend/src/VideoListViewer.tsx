@@ -32,7 +32,7 @@ const columns = [
   {
     dataIndex: "SetVideo",
     render: (SetVideo: any, row: any, index: any) => (
-      <Button type="primary" onClick={() => SetVideo("1")}>
+      <Button type="primary" onClick={() => SetVideo()}>
         동영상 보기
       </Button>
     ),
@@ -63,7 +63,7 @@ export default function VideoListViewer({
               key: i,
               Thumb: `${BACKEND_URL}/detect_video/${v}_thumb.jpg`,
               Thumb2: `${BACKEND_URL}/detect_video/${v}_thumb2.jpg`,
-              SetVideo: SetVideo,
+              SetVideo: () => SetVideo(`${BACKEND_URL}/detect_video/${v}.mp4`),
               Date: DateString.join(" "),
             }
           }))
@@ -93,7 +93,7 @@ export default function VideoListViewer({
           scroll={{ y: 500 }}
         />
       ) : (
-          <Button>A</Button>
+            <VideoPlayer src={VideoView} />
         )}
     </Modal>
   );
