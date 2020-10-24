@@ -46,7 +46,7 @@ func main() {
 		files, _ := ioutil.ReadDir("video")
 		filterFiles := []string{}
 		for _, file := range files {
-			if strings.Contains(file.Name(), DataInfo["date"]) {
+			if strings.Contains(file.Name(), DataInfo["date"]) && strings.Contains(file.Name(), ".mp4") {
 				filterFiles = append(filterFiles, file.Name())
 			}
 		}
