@@ -261,7 +261,9 @@ export default function Setting() {
     window.onresize = (e : any) => {
       dispatch(SettingActions.SetScreenSize(e.target.innerWidth-250,e.target.innerHeight-150));
     }
-  
+    return () => {
+      window.onresize = null;
+    }
   },[])
   return (
     <>
