@@ -60,7 +60,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	defer func() { // 함수 끝나면 실행
 		fmt.Println("YOLO Routine End.")
 		if !ResultMotionLine.Empty() {
-			SendThumbLog(Server, ResultMotionLine, strings.Join(detectClass, ","), NowTime)
+			SendThumbLog(Server, ResultMotionLine, "이동 경로 추적 완료", NowTime)
 			gocv.IMWrite(FileName+"_thumb2.jpg", ResultMotionLine)
 		}
 
