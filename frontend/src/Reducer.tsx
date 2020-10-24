@@ -16,6 +16,7 @@ export interface IMainState {
 export interface ISettingState {
   UseCamera: string[];
   ConvexHullPos: IClickPos[][];
+  Screen: IClickPos;
 }
 
 // State Init
@@ -43,16 +44,21 @@ class MainReducer extends ImmerReducer<IMainState> {
 const SettingState: ISettingState = {
   UseCamera: [],
   ConvexHullPos: Array.from(Array(6), () => new Array()),
+  Screen: {X:854,Y:480},
 };
 class SettingReducer extends ImmerReducer<ISettingState> {
   SetConvexHullPos(cameraIdx: number, Pos: IClickPos[]) {
     this.draftState.ConvexHullPos[cameraIdx] = Pos;
   }
+  SetScreenSize(width: number,height: number) {
+    this.draftState.Screen.X = width;
+    this.draftState.Screen.Y = height;
+  }
 }
 
 // Export (Store) and (Function for Dispatch)
 export const MainActions = createActionCreators(MainReducer);
-export const SettinActions = createActionCreators(SettingReducer);
+export const SettingActions = createActionCreators(SettingReducer);
 
 const mainReducer = createReducerFunction(MainReducer, MainState);
 const settingReducer = createReducerFunction(SettingReducer, SettingState);

@@ -19,7 +19,7 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
-import { SettinActions } from "./Reducer";
+import { SettingActions } from "./Reducer";
 import { IClickPos, ISelect } from "./Interface";
 import ConvexHull_2D from "./ConvexHull";
 import { CameraRTSPUrl } from "./Util";
@@ -56,6 +56,9 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
   const ConvexHullPos = useSelector(
     (state: ISelect) => state.settingReducer.ConvexHullPos
   );
+  const ScreenSize = useSelector(
+    (state: ISelect) => state.settingReducer.Screen
+  );
   const [ClickPos, SetPos] = useState<IClickPos[][]>(
     Array.from(Array(6), () => new Array())
   );
@@ -77,7 +80,7 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
   const onClearBtn = () => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     let ctx: CanvasContext = canvas?.getContext("2d");
-    ctx?.clearRect(0, 0, ScreenX, ScreenY);
+    ctx?.clearRect(0, 0, ScreenSize.X, ScreenSize.Y);
     let Pos = ClickPos.slice();
     Pos[CameraIdx] = [];
     SetPos(Pos);
@@ -88,7 +91,7 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
     canvas?.addEventListener("click", onCanvasClick);
     if (ClickPos[CameraIdx].length > 0) {
       dispatch(
-        SettinActions.SetConvexHullPos(
+        SettingActions.SetConvexHullPos(
           CameraIdx,
           ConvexHull_2D(ClickPos[CameraIdx].slice())
         )
@@ -96,7 +99,7 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
     } else if (ClickPos[CameraIdx].length === 0) {
       // 배열에 간선이 0개 이면 이전에 그려진 그림 초기화
       let ctx: CanvasContext = canvas?.getContext("2d");
-      ctx?.clearRect(0, 0, ScreenX, ScreenY);
+      ctx?.clearRect(0, 0, ScreenSize.X, ScreenSize.Y);
     }
     return () => {
       canvas?.removeEventListener("click", onCanvasClick);
@@ -106,7 +109,7 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
   useEffect(() => {
     let canvas: HTMLCanvasElement | null = canvasRef.current;
     let ctx: CanvasContext = canvas?.getContext("2d");
-    ctx?.clearRect(0, 0, ScreenX, ScreenY);
+    ctx?.clearRect(0, 0, ScreenSize.X, ScreenSize.Y);
     for (var i = 0; i < ConvexHullPos[CameraIdx].length; i++) {
       // 점 띄우기
       drawPoint(ctx, ConvexHullPos[CameraIdx][i]);
@@ -134,8 +137,8 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
         style={{
           color: "#607D8B",
           position: "absolute",
-          width: `${ScreenX}px`,
-          height: `${ScreenY}px`,
+          width: `${ScreenSize.X}px`,
+          height: `${ScreenSize.Y}px`,
         }}
         spinning={Spinning}
         indicator={
@@ -152,14 +155,14 @@ function DetectionAreaBox({ CameraIdx }: IDetectionAreaBox) {
             position: "relative",
             left: 0,
             top: 0,
-            width: `${ScreenX}px`,
-            height: `${ScreenY}px`,
+            width: `${ScreenSize.X}px`,
+            height: `${ScreenSize.Y}px`,
           }}
           src={CameraRTSPUrl[CameraIdx]}
         />
         <canvas
-          width={`${ScreenX}`}
-          height={`${ScreenY}`}
+          width={`${ScreenSize.X}`}
+          height={`${ScreenSize.Y}`}
           ref={canvasRef}
           style={{ cursor: "pointer", position: "absolute", left: 0, top: 0,zIndex:999 }}
         />
@@ -198,6 +201,9 @@ export function RuningFooter() {
   const ConvexHullPos = useSelector(
     (state: ISelect) => state.settingReducer.ConvexHullPos
   );
+  const ScreenSize = useSelector(
+    (state: ISelect) => state.settingReducer.Screen
+  );
   const [WorkState, SetWorkState] = useState(StateTag.wait);
 
   return (
@@ -211,12 +217,12 @@ export function RuningFooter() {
           setTimeout(() => {
             SetWorkState(StateTag.success);
             console.log({
-              ViewSize: { X: ScreenX, Y: ScreenY },
+              ViewSize: { X: ScreenSize.X, Y: ScreenSize.Y },
               DetectPoint: ConvexHullPos,
             });
             axios
               .post(`${BACKEND_URL}/SetDetectPoint`, {
-                ViewSize: { X: ScreenX, Y: ScreenY },
+                ViewSize: { X: ScreenSize.X, Y: ScreenSize.Y },
                 DetectPoint: ConvexHullPos,
               })
               .then(function (response) {
@@ -235,17 +241,27 @@ export function RuningFooter() {
   );
 }
 export default function Setting() {
+  const dispatch = useDispatch();
+  const ScreenSize = useSelector(
+    (state: ISelect) => state.settingReducer.Screen
+  );
+  useEffect(() => {
+    window.onresize = (e : any) => {
+      dispatch(SettingActions.SetScreenSize(e.target.innerWidth-250,e.target.innerHeight-150));
+    }
+  
+  },[])
   return (
     <>
       <Row>
         <Col
-          sm={ScreenY}
+          sm={ScreenSize.Y}
           style={{ position: "relative", background: "#C8D2D7" }}
         >
           <Carousel effect="fade" style={{
             position: "relative",
-            width: `${ScreenX}px`,
-            height: `${ScreenY}px`,
+            width: `${ScreenSize.X}px`,
+            height: `${ScreenSize.Y}px`,
           }} dots={{className:"carousel_dot"}}>
             <DetectionAreaBox CameraIdx={0} />
             <DetectionAreaBox CameraIdx={1} />
@@ -254,11 +270,6 @@ export default function Setting() {
             <DetectionAreaBox CameraIdx={4} />
             <DetectionAreaBox CameraIdx={5} />
           </Carousel>
-        </Col>
-        <Col flex={1}>
-          <span>
-            설정 <Slider defaultValue={10} tooltipVisible />
-          </span>
         </Col>
       </Row>
     </>
