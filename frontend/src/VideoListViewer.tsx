@@ -70,6 +70,9 @@ export default function VideoListViewer({
         }
       });
     }
+    else {
+        SetVideo("");
+    }
   }, [visible])
 
   return (
@@ -77,7 +80,7 @@ export default function VideoListViewer({
       title="Check Detection Video"
       centered
       visible={visible}
-      onCancel={onClose}
+      onCancel={(e) => {onClose(e)}}
       width={890}
       footer={null}
     >
