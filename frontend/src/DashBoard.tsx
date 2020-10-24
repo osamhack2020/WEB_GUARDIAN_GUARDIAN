@@ -9,10 +9,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { DatePicker } from "antd";
+import { DatePicker,Modal } from "antd";
 import axios from "axios";
 import { BACKEND_URL } from "./Constant";
 import { IMongoChart } from "./Interface";
+import VideoListViewer from "./VideoListViewer"
 import moment from 'moment';
 
 async function GetChartData(date: string) {
@@ -31,7 +32,7 @@ const defaultChartData = () : any =>
 function Chart() {
   const [date, SetDate] = useState<string>(moment().format("YYYYMMDD"))
   const [Chart, SetData] = useState<any>(defaultChartData());
-
+  const [show,SetShow] = useState<boolean>(false)
   const SetChart = useCallback((chartData) => {
     SetData(chartData.map((v: IMongoChart, i : number) => {
       return {
@@ -78,26 +79,28 @@ function Chart() {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
+          <CartesianGrid strokeDasharray="3 3"/>
           <XAxis dataKey="name" />
           <YAxis dy={100} />
           <Tooltip />
-          <Legend chartHeight={3} />
+          <Legend chartHeight={3}/>
           <Line
             type="monotone"
             dataKey="Motion"
             stroke="#82ca9d"
-            activeDot={{ r: 8 }}
+            activeDot={{ onClick: (event :any, payload :any)=> {SetShow(true)} }}
           />
-          <Line type="monotone" dataKey="Person" stroke="#ec6d59" />
-          <Line type="monotone" dataKey="Car" stroke="#FF8200" />
+          <Line type="monotone" dataKey="Person" stroke="#ec6d59"  activeDot={{ onClick: (event :any, payload :any)=> {SetShow(true)} }}/>
+          <Line type="monotone" dataKey="Car" stroke="#FF8200"  activeDot={{onClick: (event :any, payload :any)=> {SetShow(true)} }}/>
         </LineChart>
       </ResponsiveContainer>
 
       <DatePicker allowClear={false} defaultValue={moment()} onChange={(m: moment.Moment | null, dateString: string) => SetDate(dateString.replace(/-/g, ""))} />
+      <VideoListViewer visible={show} onClose={()=>SetShow(false)}/>
     </div>
   );
 }
 export default function DashBoard() {
   return <Chart />;
 }
+

@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal } from "antd";
 import VideoPlayer from "./VideoPlayer";
-export function VideoViewer({
+export default function VideoViewer({
   visible,
   src,
   onClose,
