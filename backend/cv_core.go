@@ -47,9 +47,9 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 
 	fmt.Printf("FPS %d\n", fps)
 
-	VideoFileName := strings.ReplaceAll(NowTime, ":", "")
-	VideoFileName = strings.ReplaceAll(VideoFileName, " ", "_")
-	VideoFileName = "video/" + VideoFileName + ".mp4"
+	FileName := strings.ReplaceAll(NowTime, ":", "")
+	FileName = "video/" + strings.ReplaceAll(FileName, " ", "_")
+	VideoFileName := FileName + ".mp4"
 	fmt.Printf("Video File : %v\n", VideoFileName)
 	writer, err := gocv.VideoWriterFile(
 		VideoFileName, "avc1", fps, encodingSize.X, encodingSize.Y, true)
@@ -61,6 +61,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 		fmt.Println("YOLO Routine End.")
 		if !ResultMotionLine.Empty() {
 			SendThumbLog(Server, ResultMotionLine, strings.Join(detectClass, ","), NowTime)
+			gocv.IMWrite(FileName+"_thumb2.jpg", ResultMotionLine)
 		}
 
 		writer.Close()
@@ -86,6 +87,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 				}
 				if len(detectClass) > 0 && !YoloData.Empty() {
 					SendThumbLog(Server, YoloData, strings.Join(detectClass, ","), NowTime)
+					gocv.IMWrite(FileName+"_thumb.jpg", ResultMotionLine)
 					YoloCheck = true
 				}
 				FrameSeq = 0
