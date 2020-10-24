@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"image"
 	"reflect"
 	"sort"
 
+	gosocketio "github.com/graarh/golang-socketio"
 	"gocv.io/x/gocv"
 )
 
@@ -14,6 +16,12 @@ var encodingSize image.Point = image.Point{854, 480}
 
 //var encodingSize image.Point = image.Point{854, 480}
 //var encodingSize image.Point = image.Point{1920, 1080}
+
+func SendThumbLog(Server *gosocketio.Server, img gocv.Mat, content string, NowTime string) {
+	buf, _ := gocv.IMEncode(".jpg", img)
+	b, _ := json.Marshal(IDetect{buf, content, NowTime})
+	Server.BroadcastToAll("detect", string(b))
+}
 
 // Old,New
 func CloneValue(source interface{}, destin interface{}) {

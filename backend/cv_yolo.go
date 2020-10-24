@@ -88,8 +88,8 @@ func drawRect(img *gocv.Mat, boxes []image.Rectangle, ignoreBox []image.Rectangl
 			continue
 		}
 		detectBox = append(detectBox, box)
-		gocv.Rectangle(img, box, color.RGBA{255, 0, 0, 0}, 2)
-		gocv.PutText(img, classes[classIds[idx]], image.Point{boxes[idx].Max.X, boxes[idx].Max.Y + 30}, gocv.FontHersheyPlain, 5, color.RGBA{0, 0, 255, 0}, 3)
+		gocv.Rectangle(img, box,  color.RGBA{220, 20, 60, 0}, 2)
+		gocv.PutText(img, classes[classIds[idx]], image.Point{boxes[idx].Max.X, boxes[idx].Max.Y - 10}, gocv.FontHersheySimplex , 1, color.RGBA{220, 20, 60, 0}, 2)
 		detectClass = append(detectClass, classes[classIds[idx]])
 	}
 	return detectClass, detectBox

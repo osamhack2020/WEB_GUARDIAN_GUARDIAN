@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"image"
 	"log"
@@ -48,9 +47,9 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 
 	fmt.Printf("FPS %d\n", fps)
 
-	VideoFileName := strings.ReplaceAll(NowTime, ":", "")
-	VideoFileName = strings.ReplaceAll(VideoFileName, " ", "_")
-	VideoFileName = "video/" + VideoFileName + ".mp4"
+	FileName := strings.ReplaceAll(NowTime, ":", "")
+	FileName = "video/" + strings.ReplaceAll(FileName, " ", "_")
+	VideoFileName := FileName + ".mp4"
 	fmt.Printf("Video File : %v\n", VideoFileName)
 	writer, err := gocv.VideoWriterFile(
 		VideoFileName, "avc1", fps, encodingSize.X, encodingSize.Y, true)
@@ -61,9 +60,8 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 	defer func() { // 함수 끝나면 실행
 		fmt.Println("YOLO Routine End.")
 		if !ResultMotionLine.Empty() {
-			buf, _ := gocv.IMEncode(".jpg", ResultMotionLine)
-			b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-			Server.BroadcastToAll("detect", string(b))
+			SendThumbLog(Server, ResultMotionLine, "이동 경로 추적 완료", NowTime)
+			gocv.IMWrite(FileName+"_thumb2.jpg", ResultMotionLine)
 		}
 
 		writer.Close()
@@ -84,10 +82,12 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 			if FrameSeq%30 == 0 {
 				detectClass, detectBox = YoloDetect(net, &YoloData, 0.45, 0.5, OutputNames, classes, []string{}, ignoreBox) //고정 좌표 제외하고 식별
 				fmt.Printf("class : %v %v\n ", detectClass, detectBox)
+				for _, class := range detectClass {
+					DB.ComposeUpdate(class)
+				}
 				if len(detectClass) > 0 && !YoloData.Empty() {
-					buf, _ := gocv.IMEncode(".jpg", YoloData)
-					b, _ := json.Marshal(IDetect{buf, strings.Join(detectClass, ","), NowTime})
-					Server.BroadcastToAll("detect", string(b))
+					SendThumbLog(Server, YoloData, strings.Join(detectClass, ","), NowTime)
+					gocv.IMWrite(FileName+"_thumb.jpg", YoloData)
 					YoloCheck = true
 				}
 				FrameSeq = 0
@@ -110,6 +110,7 @@ func YoloRoutine(Server *gosocketio.Server, net *gocv.Net, OutputNames []string,
 }
 
 func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel chan DetectPointInfo) {
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	Cap, err := gocv.OpenVideoCapture(CapUrl)
 	if err != nil {
@@ -195,7 +196,6 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 			motionCnt := MotionDetect(resultROI, imgDelta, imgThresh, mog2)
 			if motionCnt > 0 { // 움직임 감지됐으면
-
 				if !startFlag { // 움직임 감지 시작 시간 대입
 					startFlag = true
 					startTime = time.Now()
@@ -203,6 +203,7 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 					ingTime := float32(time.Since(startTime) / time.Second)
 					if ingTime > 0 {
 						if !timeSeq && ingTime > 2.0 {
+							DB.ComposeUpdate("motion")
 							fmt.Println("움직임 감지 2초")
 							timeSeq = true
 							// run YoloRoutine.
@@ -253,7 +254,6 @@ func DetectStart(CapUrl string, Server *gosocketio.Server, DetectPointChannel ch
 
 		if DPI.ViewSize.X > 0 && DPI.ViewSize.Y > 0 {
 			once.Do(func() {
-
 				_, ignoreBox = YoloDetect(&net,
 					&resizeImg,
 					0.45,

@@ -13,6 +13,7 @@ type DetectPointInfo struct {
 	DetectPoint [][]image.Point
 }
 
+
 func MotionDetect(src gocv.Mat, imgDelta gocv.Mat, imgThresh gocv.Mat, mog2 gocv.BackgroundSubtractorMOG2) int {
 	if src.Empty() {
 		return -1
