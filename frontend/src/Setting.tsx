@@ -257,6 +257,7 @@ export default function Setting() {
     (state: ISelect) => state.settingReducer.Screen
   );
   useEffect(() => {
+    dispatch(SettingActions.SetScreenSize(window.innerWidth-250,window.innerHeight-150));
     window.onresize = (e : any) => {
       dispatch(SettingActions.SetScreenSize(e.target.innerWidth-250,e.target.innerHeight-150));
     }
