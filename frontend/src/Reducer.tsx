@@ -30,7 +30,7 @@ class MainReducer extends ImmerReducer<IMainState> {
   addDetectLog(thumbnail: string, content: string, time: string) {
     this.draftState.DetectLog.push({
       thumbnail: `data:image/jpeg;base64,${thumbnail}`,
-      content: content + " 식별",
+      content: content,
       time: time,
     });
   }
