@@ -49,6 +49,7 @@
  - **React : 웹 어플리케이션 개발에 용이한 프론트엔드 프레임워크입니다.**
 ### Server(back-end)
  - **golang 1.15.2**
+ - **Echo**
  - **GoCV (OpenCV Binding)** 
  - **mongoDB**
  
