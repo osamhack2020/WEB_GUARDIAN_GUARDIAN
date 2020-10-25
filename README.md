@@ -40,6 +40,13 @@
 * **권장: Google Chrome 버젼 77 이상**
 
 ## 기술 스택 (Technique Used)
+### 주요 기술 선정 이유
+ - **Golang : 영상 감시 프로젝트는 사이즈가 큰 실시간 데이터를 처리하기 때문에**  
+ **퍼포먼스, 동시성, HTTP를 모두 갖춘 Go언어를 선택했습니다.**
+ - **OpenCV : 컴퓨터비전 작업이 많은 프로젝트인 만큼 오픈소스인 'OpenCV' 라이브러리를 선택했습니다.**
+ - **Darknet Yolov4-tiny: YOLO 모델 자체는 실시간 물체 감지를 위해 태어났습니다.** 
+   **개발 환경이 VM에서 제한됐기 때문에 적은 CPU 코어에서도 운용할 수 있는 Tiny 모델을 선택했습니다.**
+ - **React : 웹 어플리케이션 개발에 용이한 프론트엔드 프레임워크입니다.**
 ### Server(back-end)
  - **golang 1.15.2**
  - **GoCV (OpenCV Binding)** 
@@ -108,6 +115,17 @@
 > echo {set_password} > MONGO_PW
 > go run cv_core.go cv_motion_liner.go cv_util.go http.go cv_motion.go cv_yolo.go mongo.go :8081
 ```
+
+**백엔드 실행 (Docker)**
+```sh
+# OpenCV 라이브러리를 설치하지 않았을 때 쓰는 방법입니다.
+# 데이터베이스 패스워드 설정
+> cd WEB_GUARDIAN_GUARDIAN
+> docker -v $PWD/backend:/ gocv/opencv 'go run cv_core.go cv_motion_liner.go cv_util.go http.go cv_motion.go cv_yolo.go mongo.go :8081'
+> echo {set_password} > MONGO_PW
+> go run cv_core.go cv_motion_liner.go cv_util.go http.go cv_motion.go cv_yolo.go mongo.go :8081
+```
+
 **인터넷 브라우저 접속 http://localhost:8080**
 
 ## 팀 정보 (Team Information)
