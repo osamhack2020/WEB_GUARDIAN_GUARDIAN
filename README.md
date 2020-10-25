@@ -38,7 +38,8 @@
 ## 컴퓨터 구성 / 필수 조건 안내 (Prerequisites)
 * **ECMAScript 6 지원 브라우저 사용**
 * **권장: Google Chrome 버젼 77 이상**
-
+* **Golang 설치**
+* **IP Camera 또는 RTSP 스트리밍을 지원하는 DVR**
 ## 기술 스택 (Technique Used)
 ### 주요 기술 선정 이유
  - **Golang : 영상 감시 프로젝트는 사이즈가 큰 실시간 데이터를 처리하기 때문에**  
