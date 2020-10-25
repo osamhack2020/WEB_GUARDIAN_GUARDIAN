@@ -1,34 +1,49 @@
-# docker mongo
-> docker run --name {container_name} {image}
+## Run
+```sh
+# 실행
+> echo {MONGO_PASSWORD} > MONGO_PW
+> cat MONGO_PW
+> docker-compose up -d
 
-ex) 
-> docker run --name mongo mongo-basic
+# 관리
+> docker exec -it mongo_go_guardian_db_1 mongo admin -u guardian -p {MONGO_PASSWORD}
+```
+## mongod 명령어 
+```sh
+# Init
+> db.createCollection("statistics")
+> db.statistics.insert({"date":"20201023", time:[
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+{"Motion":0,"Person":0,"Car":0},
+]});
+# Delete
+> db.statistics.remove({"date": "20201023"})
 
-# docker mongo initialize
-> docker run -d --name {container_name} \
-> -e MONGO_INITDB_ROOT_USERNAME={admin} \
-> -e MONGO_INITDB_ROOT_PASSWORD={password} \
-> image
+# Update
+> db.statistics.update({"date": "20201023"},{ $inc: { "time.23.Motion": 1 } } );
 
-# docker mongo login 
-> docker exec -it mongodb mongo -u {admin} -p {password} --authenticationDatabase {database}
-> \
-> docker exec -it mongodb mongo -u {admin} -p {password} --authenticationDatabase admin
-
-ex)
-> mongo -u root -p GUARDIAN --authenticationDatabase admin
-
-# connect server
- Server also connects network.
-> docker network create --driver {network_type} {network_name} \
-> \
-> docker run -i -t --name {container_name} \     
-> --net {network_name} \                                  
-> image                         
-
-ex)
-> docker network create --driver bridge node-mongo-network \
-> \
-> docker run -i -t --name mongo \
-> --net node-mongo-network \
-> mongo-basic
+# Confirm
+> db.statistics.find()
+```

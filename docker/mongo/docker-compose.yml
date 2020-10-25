@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  guardian_db:
+    image: mongo
+    restart: always
+    environment:
+        MONGO_INITDB_ROOT_USERNAME: guardian
+        MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PW}
+    ports:
+        - "27017:27017"
+    volumes:
+        - $PWD/db:/data/db
