@@ -42,7 +42,7 @@
 ## 기술 스택 (Technique Used)
 ### Server(back-end)
  - **golang 1.15.2**
- - **GoCV (OpenCV Binding)* 
+ - **GoCV (OpenCV Binding)** 
  - **mongoDB**
  
 ### front-end
