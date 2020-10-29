@@ -9,7 +9,7 @@
 ## 기능 설계
 **[Oven](https://ovenapp.io/project/yx0NjBwiaWnct4suJmMu9fvgJmmRNLwe#sy1Vs)**  
 ## 커뮤니티
-[2020 국방오픈소스아카데미 해커톤 - GUARDIAN 개발 후기](https://velog.io/@gron1gh1/2020-%EA%B5%AD%EB%B0%A9%EC%98%A4%ED%94%88%EC%86%8C%EC%8A%A4%EC%95%84%EC%B9%B4%EB%8D%B0%EB%AF%B8-%ED%95%B4%EC%BB%A4%ED%86%A4-GUARDIAN-%EA%B0%9C%EB%B0%9C-%ED%9B%84%EA%B8%B0)
+[2020 국방오픈소스아카데미 해커톤 - GUARDIAN 개발 후기](https://develment.tistory.com/1)
 ## 핵심 기능 소개
 ### RTSP 스트리밍 및 상황일지 작성
 <img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/main.PNG" height="300">
