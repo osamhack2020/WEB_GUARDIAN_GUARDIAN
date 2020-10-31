@@ -95,24 +95,29 @@
  - **Darknet Yolov4-tiny: YOLO 모델 자체는 실시간 물체 감지를 위해 태어났습니다.** 
    **개발 환경이 VM에서 제한됐기 때문에 적은 CPU 코어에서도 운용할 수 있는 Tiny 모델을 선택했습니다.**
  - **React : 웹 어플리케이션 개발에 용이한 프론트엔드 프레임워크입니다.**
-### Server(back-end)
- - **golang 1.15.2**
- - **Echo**
- - **GoCV (OpenCV Binding)** 
- - **mongoDB**
- 
-### front-end
- - **TypeScript**
- - **React.js**  
- - **Antd UI Framework**  
- - **Socket.io**
- - **Video.js**
- 
-### Infra
- - **Docker**
+* Backend  
 
-### Machine-learning
- - **Darknet Yolov4-tiny**
+|golang|Echo|GoCV|mongoDB|
+|:---:|:---:|:---:|:---:|
+|<img src="https://golang.org/lib/godoc/images/go-logo-blue.svg" height="30px">|<img src="https://cdn.labstack.com/images/echo-logo.svg" height="30px">|<img src="https://raw.githubusercontent.com/hybridgroup/gocv/release/images/gocvlogo.jpg" height="40px">|<img src="https://t1.daumcdn.net/cfile/tistory/99F1D23359DB7A6434" height="30px">|
+
+* FrontEnd  
+
+|TypeScript|React.js|Antd UI Framework|Socket.io|Video.js|
+|:---:|:---:|:---:|:---:|:---:|
+|<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Typescript_logo_2020.svg/220px-Typescript_logo_2020.svg.png" height="50px">|<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/200px-React-icon.svg.png" height="60px">|<img src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" height="50px">|<img src="https://image.toast.com/aaaadh/alpha/2017/techblog/image%284%29.png" height="50px">|<img src="https://api.nuget.org/v3-flatcontainer/videojs/4.9.0/icon" height="20px">|
+
+* Infra  
+
+|Docker|
+|:---:|
+|<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Docker_%28container_engine%29_logo.svg/220px-Docker_%28container_engine%29_logo.svg.png" height="50px">|
+
+* Machine Learning  
+
+|Darknet YOLOv4|
+|:---:|
+|<img src="https://camo.githubusercontent.com/e69d4118b20a42de4e23b9549f9a6ec6dbbb0814/687474703a2f2f706a7265646469652e636f6d2f6d656469612f66696c65732f6461726b6e65742d626c61636b2d736d616c6c2e706e67" height="50px">|
  
 ## 설치 안내 (Installation Process) 🔍
 
