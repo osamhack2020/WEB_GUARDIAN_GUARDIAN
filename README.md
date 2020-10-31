@@ -1,4 +1,8 @@
 # GUARDIAN - CCTV감지체계
+![](https://img.shields.io/github/issues/osamhack2020/WEB_GUARDIAN_GUARDIAN)
+![](https://img.shields.io/github/forks/osamhack2020/WEB_GUARDIAN_GUARDIAN)
+![](https://img.shields.io/github/stars/osamhack2020/WEB_GUARDIAN_GUARDIAN)
+![](https://img.shields.io/github/license/osamhack2020/WEB_GUARDIAN_GUARDIAN)
 
 # Logo
 ![Logo](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/logo.png)
@@ -88,36 +92,39 @@
 * **IP Camera 또는 RTSP 스트리밍을 지원하는 DVR**
 
 ## 기술 스택 (Technique Used) 💻
-* 주요 기술 선정 이유
-  * **Golang : 영상 감시 프로젝트는 사이즈가 큰 실시간 데이터를 처리하기 때문에**  
-    **퍼포먼스, 동시성, HTTP를 모두 갖춘 Go언어를 선택했습니다.**
-  * **OpenCV : 컴퓨터비전 작업이 많은 프로젝트인 만큼 오픈소스인 'OpenCV' 라이브러리를 선택했습니다.**
-  * **Darknet Yolov4-tiny: YOLO 모델 자체는 실시간 물체 감지를 위해 태어났습니다.** 
-    **개발 환경이 VM에서 제한됐기 때문에 적은 CPU 코어에서도 운용할 수 있는 Tiny 모델을 선택했습니다.**
-  * **React : 웹 어플리케이션 개발에 용이한 프론트엔드 프레임워크입니다.**
-* Backend  
+* **주요 기술 선정 이유**
+  * **Golang** : 영상 감시 프로젝트는 사이즈가 큰 실시간 데이터를 처리하기 때문에
+    퍼포먼스, 동시성, HTTP를 모두 갖춘 Go언어를 선택했습니다.
+    
+  * **OpenCV** : 컴퓨터비전 작업이 많은 프로젝트인 만큼 오픈소스인 'OpenCV' 라이브러리를 선택했습니다.
+  * **Darknet Yolov4-tiny**: YOLO 모델 자체는 실시간 물체 감지를 위해 태어났습니다.
+  
+    개발 환경이 VM에서 제한됐기 때문에 적은 CPU 코어에서도 운용할 수 있는 Tiny 모델을 선택했습니다.
+  * **React** : 웹 어플리케이션 개발에 용이한 프론트엔드 프레임워크입니다.
+  
+* **Backend**  
 
-|golang|Echo|GoCV|mongoDB|
+|golang|Echo|OpenCV|mongoDB|
 |:---:|:---:|:---:|:---:|
-|<img src="https://golang.org/lib/godoc/images/go-logo-blue.svg" height="30px">|<img src="https://cdn.labstack.com/images/echo-logo.svg" height="30px">|<img src="https://raw.githubusercontent.com/hybridgroup/gocv/release/images/gocvlogo.jpg" height="40px">|<img src="https://t1.daumcdn.net/cfile/tistory/99F1D23359DB7A6434" height="30px">|
+|<a href="https://golang.org/"><img src="https://golang.org/lib/godoc/images/go-logo-blue.svg" height="30px"></a>|<a href="https://echo.labstack.com/"><img src="https://cdn.labstack.com/images/echo-logo.svg" height="30px"></a>|<a href="https://opencv.org/"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/OpenCV_Logo_with_text.png/220px-OpenCV_Logo_with_text.png" height="50px"></a>|<a href="https://www.mongodb.com/"><img src="https://t1.daumcdn.net/cfile/tistory/99F1D23359DB7A6434" height="30px"></a>|
 
-* FrontEnd  
+* **FrontEnd**  
 
 |TypeScript|React.js|Antd UI Framework|Socket.io|Video.js|
 |:---:|:---:|:---:|:---:|:---:|
-|<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Typescript_logo_2020.svg/220px-Typescript_logo_2020.svg.png" height="50px">|<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/200px-React-icon.svg.png" height="60px">|<img src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" height="50px">|<img src="https://image.toast.com/aaaadh/alpha/2017/techblog/image%284%29.png" height="50px">|<img src="https://api.nuget.org/v3-flatcontainer/videojs/4.9.0/icon" height="20px">|
+|<a href="https://www.typescriptlang.org/"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Typescript_logo_2020.svg/220px-Typescript_logo_2020.svg.png" height="50px"></a>|<a href="https://ko.reactjs.org/"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/React-icon.svg/200px-React-icon.svg.png" height="60px"></a>|<a href="https://ant.design/"><img src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" height="50px"></a>|<a href="https://socket.io/"><img src="https://image.toast.com/aaaadh/alpha/2017/techblog/image%284%29.png" height="50px"></a>|<a href="https://videojs.com/"><img src="https://api.nuget.org/v3-flatcontainer/videojs/4.9.0/icon" height="20px"></a>|
 
-* Infra  
+* **Infra**  
 
 |Docker|
 |:---:|
-|<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Docker_%28container_engine%29_logo.svg/220px-Docker_%28container_engine%29_logo.svg.png" height="50px">|
+|<a href="https://www.docker.com/get-started"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Docker_%28container_engine%29_logo.svg/220px-Docker_%28container_engine%29_logo.svg.png" height="50px"></a>|
 
-* Machine Learning  
+* **Machine Learning**  
 
 |Darknet YOLOv4|
 |:---:|
-|<img src="https://camo.githubusercontent.com/e69d4118b20a42de4e23b9549f9a6ec6dbbb0814/687474703a2f2f706a7265646469652e636f6d2f6d656469612f66696c65732f6461726b6e65742d626c61636b2d736d616c6c2e706e67" height="50px">|
+|<a href="https://pjreddie.com/darknet/"><img src="https://camo.githubusercontent.com/e69d4118b20a42de4e23b9549f9a6ec6dbbb0814/687474703a2f2f706a7265646469652e636f6d2f6d656469612f66696c65732f6461726b6e65742d626c61636b2d736d616c6c2e706e67" height="50px"></a>|
  
 ## 설치 안내 (Installation Process) 🔍
 
