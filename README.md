@@ -5,7 +5,7 @@
 
 ## 팀소개 및 프로젝트 설명 동영상
 [![Youtube](https://img.youtube.com/vi/MSN9aameOGU/0.jpg)](https://youtu.be/MSN9aameOGU)   
-**발표 영상**
+**발표 영상**  
 [![Youtube](https://img.youtube.com/vi/62XSThINc_U/0.jpg)](https://youtu.be/62XSThINc_U)   
 **시연 영상**  
 ## 기능 설계
