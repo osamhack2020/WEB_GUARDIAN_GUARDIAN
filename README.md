@@ -4,40 +4,48 @@
 ![Logo](https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/logo.png)
 
 ## 팀소개 및 프로젝트 설명 동영상
-[![Youtube](https://img.youtube.com/vi/MSN9aameOGU/0.jpg)](https://youtu.be/MSN9aameOGU)   
-**발표 영상**  
-[![Youtube](https://img.youtube.com/vi/62XSThINc_U/0.jpg)](https://youtu.be/62XSThINc_U)   
-**시연 영상**  
+|발표 영상|시연영상|
+|:---:|:---:|
+|[![Youtube](https://img.youtube.com/vi/MSN9aameOGU/0.jpg)](https://youtu.be/MSN9aameOGU)|[![Youtube](https://img.youtube.com/vi/62XSThINc_U/0.jpg)](https://youtu.be/62XSThINc_U)|
+|<a href="https://drive.google.com/file/d/17f_Y475dRi8Zn96GPG8C1lWNHbNy8lPM/view?usp=sharing"><img src="https://w.namu.la/s/c0d20de14d789f2b504263608dd48abb00ee7c10e208fd647da9e4117b56e32d16332f50e0337d9c57f555a5d3660f759b919b910c3ce7cb7007df59e06209abcd01d968dce821fb7460cd9d5f28c51929eec5f30298db856120f0f19e752f2b" height="20"><b style="margin-top:-5px"> Google Drive</b></a>|<a href="https://drive.google.com/file/d/1kWrpgiZdk3v0ILAGT2mdWSJEXkWaVGaH/view?usp=sharing"><img src="https://w.namu.la/s/c0d20de14d789f2b504263608dd48abb00ee7c10e208fd647da9e4117b56e32d16332f50e0337d9c57f555a5d3660f759b919b910c3ce7cb7007df59e06209abcd01d968dce821fb7460cd9d5f28c51929eec5f30298db856120f0f19e752f2b" height="20"><b style="margin-top:-5px"> Google Drive</b></a>|
+|<a href="https://youtu.be/MSN9aameOGU"><img src="https://ww.namu.la/s/a4013816a435533ad87dfccfa89d548db221f0e74f2aac166acf69ab6d609d20c832bc6e964d0bf39d55ced3528fec9bbfd2456252b59e0a5a099b3c4dc256c29837081b43213d647bc8773a21099a9348b410ecc949bbb6158d2a3694e6ff58" height="20"></a>|<a href="https://youtu.be/62XSThINc_U"><img src="https://ww.namu.la/s/a4013816a435533ad87dfccfa89d548db221f0e74f2aac166acf69ab6d609d20c832bc6e964d0bf39d55ced3528fec9bbfd2456252b59e0a5a099b3c4dc256c29837081b43213d647bc8773a21099a9348b410ecc949bbb6158d2a3694e6ff58" height="20"></a>|
+
 ## 기능 설계
 **[Oven](https://ovenapp.io/project/yx0NjBwiaWnct4suJmMu9fvgJmmRNLwe#sy1Vs)**  
 ## 커뮤니티
 [2020 국방오픈소스아카데미 해커톤 - GUARDIAN 개발 후기](https://develment.tistory.com/1)
 ## 핵심 기능 소개
 ### RTSP 스트리밍 및 상황일지 작성
-<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/main.PNG" height="300">
 
-**네트워크 카메라 또는 DVR에서 지원하는 RTSP 스트림 데이터를 웹에서 보여줍니다.**  
+|RTSP 스트리밍 및 상황일지 작성|
+|:---:|
+|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/main.PNG" height="300">|
+|**네트워크 카메라 또는 DVR에서 지원하는 RTSP 스트림 데이터를 웹에서 보여줍니다.**|
 
-### 사람 및 차량 감지
-<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/detect.jpg" height="300">
+|사람 및 차량 감지|
+|:---:|
+|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/detect.jpg" height="300">|
+|**YOLO기반 Object Detection으로 사람 및 자동차를 식별합니다.**|
 
-**YOLO기반 Object Detection으로 사람 및 자동차를 식별합니다.**  
 
-### 감지 후 이동 거리 추적 시각화 및 자동 녹화
-<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/motion_liner.jpg" height="300">
+|감지 후 이동 거리 추적 시각화 및 자동 녹화|
+|:---:|
+|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/detect.jpg" height="300">|
+|**해당 객체가 움직임이 없어지면 경로를 추적하여 사용자에게 보여줍니다.**|
+|**확실한 감지를 했을 때만 (감지~움직임 감지 끝) 분기를 녹화하여 사용자에게 보여줍니다.**|
 
-**해당 객체가 움직임이 없어지면 경로를 추적하여 사용자에게 보여줍니다.**  
-**또 (감지~움직임 감지 끝) 분기를 녹화하여 사용자에게 보여줍니다.**
 
-### 일별 시계열 통계
-<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/statistics.PNG" height="300">
+|일별 시계열 통계|
+|:---:|
+|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/statistics.PNG" height="300">|
+|**일별로 데이터를 기록하여 0~24시까지 감지된 정보를 알려줍니다.**|
 
-**일별로 데이터를 기록하여 0~24시까지 감지된 정보를 알려줍니다.**
 
-### 과거 식별 데이터 스트리밍
-<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/prev_data_streaming.PNG" height="300">
+|과거 식별 데이터 스트리밍|
+|:---:|
+|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/prev_data_streaming.PNG" height="300">|
+|**통계에서 해당 시간을 선택할 시 그 시간대에 감지됐던 식별 동영상을 볼 수 있습니다.**|
 
-**통계에서 해당 시간을 선택할 시 그 시간대에 감지됐던 식별 동영상을 볼 수 있습니다.**
 ## 컴퓨터 구성 / 필수 조건 안내 (Prerequisites)
 * **ECMAScript 6 지원 브라우저 사용**
 * **권장: Google Chrome 버젼 77 이상**
