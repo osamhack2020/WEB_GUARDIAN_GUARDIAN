@@ -64,7 +64,7 @@
 
 |감지 후 이동 거리 추적 시각화 및 자동 녹화|
 |:---:|
-|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/detect.jpg" height="300">|
+|<img src="https://github.com/osamhack2020/WEB_GUARDIAN_GUARDIAN/blob/main/preview/motion_liner.jpg" height="300">|
 |**해당 객체가 움직임이 없어지면 경로를 추적하여 사용자에게 보여줍니다.**|
 |**확실한 감지를 했을 때**  
 **(감지~움직임 감지 끝) 분기를 녹화하여 사용자에게 보여줍니다.**|
